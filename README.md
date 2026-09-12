@@ -44,6 +44,29 @@ npm test
 npm run verify:pack
 ```
 
+## Local Homebridge Test
+
+```sh
+cd /Users/thierrylubrez/Developpements/homebridge-sofabaton-x1s
+npm run build
+npm link
+homebridge -D -U ~/.homebridge-dev
+```
+
+## Alpha Publishing
+
+Do not publish without explicit maintainer confirmation.
+
+```sh
+npm login
+npm run lint
+npm run build
+npm test
+npm run verify:pack
+npm pack --dry-run
+npm publish --tag alpha
+```
+
 ## Francais
 
 Plugin Homebridge pour piloter les activites SofaBaton X1S depuis l'app Maison d'Apple.
@@ -51,3 +74,26 @@ Plugin Homebridge pour piloter les activites SofaBaton X1S depuis l'app Maison d
 Ce projet cible volontairement la SofaBaton X1S uniquement, car c'est le modele qui peut etre teste. Il ne promet pas de compatibilite avec X1, X2, la serie U, ni les futures telecommandes SofaBaton.
 
 La premiere version utilise une configuration manuelle des activites afin de valider proprement le comportement avec une vraie X1S avant d'elargir l'automatisation de la decouverte.
+
+### Test local Homebridge
+
+```sh
+cd /Users/thierrylubrez/Developpements/homebridge-sofabaton-x1s
+npm run build
+npm link
+homebridge -D -U ~/.homebridge-dev
+```
+
+### Publication alpha
+
+Ne pas publier sans confirmation explicite du mainteneur.
+
+```sh
+npm login
+npm run lint
+npm run build
+npm test
+npm run verify:pack
+npm pack --dry-run
+npm publish --tag alpha
+```
