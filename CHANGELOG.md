@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.1.0-alpha.1
+
+- Adds automatic local X1S activity catalog discovery.
+- Keeps `manualActivities` as fallback and override entries when discovery is enabled.
+- Adds protocol parsing tests based on real X1S activity catalog frames.
+
 ## 0.1.0-alpha.0
 
 - Initial alpha implementation for SofaBaton X1S activity control.

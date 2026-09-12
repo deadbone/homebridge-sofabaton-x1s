@@ -1,7 +1,14 @@
 import dgram from 'node:dgram';
 import net from 'node:net';
 import os from 'node:os';
-import { buildActivateFrame, buildCallMeFrame } from './protocol.js';
+import {
+  buildActivateFrame,
+  buildActivityCatalogRequestFrame,
+  buildAuthRequestFrame,
+  buildCallMeFrame,
+  parseActivityCatalogFrame,
+} from './protocol.js';
+import type { SofaBatonActivity } from './protocol.js';
 
 export interface SofaBatonClientOptions {
   readonly hubIp: string;
@@ -17,6 +24,15 @@ export class SofaBatonX1SClient {
     const socket = await this.openSession();
     try {
       await writeSocket(socket, buildActivateFrame(activityId, keyCode));
+    } finally {
+      socket.destroy();
+    }
+  }
+
+  public async discoverActivities(): Promise<readonly SofaBatonActivity[]> {
+    const socket = await this.openSession();
+    try {
+      return await collectActivities(socket, this.options.timeoutMs, this.options.debug);
     } finally {
       socket.destroy();
     }
@@ -44,6 +60,71 @@ export class SofaBatonX1SClient {
       server.close();
     }
   }
+}
+
+async function collectActivities(
+  socket: net.Socket,
+  timeoutMs: number,
+  debug?: (message: string) => void,
+): Promise<readonly SofaBatonActivity[]> {
+  const activities = new Map<number, SofaBatonActivity>();
+
+  await writeSocket(socket, buildAuthRequestFrame());
+  await delay(250);
+
+  return await new Promise((resolve, reject) => {
+    let settled = false;
+    let quietTimer: NodeJS.Timeout | undefined;
+    const totalTimer = setTimeout(() => finish(), timeoutMs);
+
+    const resetQuietTimer = (): void => {
+      if (quietTimer) {
+        clearTimeout(quietTimer);
+      }
+      quietTimer = setTimeout(() => finish(), Math.min(1500, timeoutMs));
+    };
+
+    const finish = (): void => {
+      if (settled) {
+        return;
+      }
+      settled = true;
+      clearTimeout(totalTimer);
+      if (quietTimer) {
+        clearTimeout(quietTimer);
+      }
+      socket.off('data', onData);
+      socket.off('error', onError);
+      resolve([...activities.values()].sort((left, right) => left.id - right.id));
+    };
+
+    const onError = (error: Error): void => {
+      if (settled) {
+        return;
+      }
+      settled = true;
+      clearTimeout(totalTimer);
+      if (quietTimer) {
+        clearTimeout(quietTimer);
+      }
+      reject(error);
+    };
+
+    const onData = (data: Buffer): void => {
+      const activity = parseActivityCatalogFrame(data);
+      if (!activity) {
+        debug?.(`Ignoring X1S catalog response frame: ${data.toString('hex')}`);
+        return;
+      }
+      activities.set(activity.id, activity);
+      debug?.(`Discovered X1S activity ${activity.id}: ${activity.name}`);
+      resetQuietTimer();
+    };
+
+    socket.on('data', onData);
+    socket.once('error', onError);
+    writeSocket(socket, buildActivityCatalogRequestFrame()).catch(onError);
+  });
 }
 
 function waitForConnection(server: net.Server, timeoutMs: number): Promise<net.Socket> {
@@ -92,6 +173,12 @@ function writeSocket(socket: net.Socket, frame: Buffer): Promise<void> {
       }
       resolve();
     });
+  });
+}
+
+function delay(ms: number): Promise<void> {
+  return new Promise((resolve) => {
+    setTimeout(resolve, ms);
   });
 }
 

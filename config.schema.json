@@ -31,7 +31,8 @@
       "discovery": {
         "title": "Enable Discovery",
         "type": "boolean",
-        "default": true
+        "default": true,
+        "description": "Automatically read the X1S activity catalog from the local hub when hubIp is configured."
       },
       "localListenPort": {
         "title": "Local Listen Port",
@@ -56,7 +57,7 @@
         "type": "array",
         "default": [],
         "buttonText": "Add X1S Activity",
-        "description": "Configure the SofaBaton X1S activities you programmed in the SofaBaton app. Activity ids are read from X1S tooling or protocol logs until automatic catalog support is validated.",
+        "description": "Optional fallback or override list. When discovery is enabled, activities are read automatically from the X1S hub; manual entries with the same id override discovered names.",
         "items": {
           "title": "Activity",
           "type": "object",

@@ -4,6 +4,13 @@ export const OP_CALL_ME = 0x0CC3;
 export const OP_AUTH_REQUEST = 0x0001;
 export const OP_REQ_ACTIVITIES = 0x003A;
 export const OP_REQ_ACTIVATE = 0x023F;
+export const OP_RES_ACTIVITY = 0xD53B;
+
+export interface SofaBatonActivity {
+  readonly id: number;
+  readonly name: string;
+  readonly keyCode: number;
+}
 
 export function checksum(bytes: Uint8Array): number {
   let total = 0;
@@ -39,6 +46,65 @@ export function buildActivateFrame(activityId: number, keyCode = 0): Buffer {
   validateByte(activityId, 'activityId');
   validateByte(keyCode, 'keyCode');
   return buildFrame(OP_REQ_ACTIVATE, Uint8Array.from([activityId, keyCode]));
+}
+
+export function buildActivityCatalogRequestFrame(): Buffer {
+  return buildFrame(OP_REQ_ACTIVITIES);
+}
+
+export function buildAuthRequestFrame(): Buffer {
+  return buildFrame(OP_AUTH_REQUEST);
+}
+
+export function parseActivityCatalogFrame(frame: Buffer): SofaBatonActivity | undefined {
+  if (frame.length < 13 || frame[0] !== SYNC_0 || frame[1] !== SYNC_1) {
+    return undefined;
+  }
+
+  const opcode = frame.readUInt16BE(2);
+  if (opcode !== OP_RES_ACTIVITY) {
+    return undefined;
+  }
+
+  const id = frame[11];
+  if (id === undefined || id < 1) {
+    return undefined;
+  }
+
+  const name = findUtf16Name(frame.subarray(12, frame.length - 1));
+  if (!name) {
+    return undefined;
+  }
+
+  return { id, name, keyCode: 0 };
+}
+
+function findUtf16Name(payload: Buffer): string | undefined {
+  const names = new Set<string>();
+  for (let offset = 0; offset < payload.length - 3; offset++) {
+    const chars: string[] = [];
+    for (let cursor = offset; cursor < payload.length - 1; cursor += 2) {
+      const code = payload.readUInt16BE(cursor);
+      if (code === 0) {
+        break;
+      }
+      if (!isPrintableUtf16CodeUnit(code)) {
+        chars.length = 0;
+        break;
+      }
+      chars.push(String.fromCharCode(code));
+    }
+    const name = chars.join('').trim();
+    if (name.length >= 2 && /[\p{L}\p{N}]/u.test(name)) {
+      names.add(name);
+    }
+  }
+
+  return [...names].sort((left, right) => right.length - left.length)[0];
+}
+
+function isPrintableUtf16CodeUnit(code: number): boolean {
+  return code >= 32 && code <= 0x024F;
 }
 
 function validateByte(value: number, path: string): void {

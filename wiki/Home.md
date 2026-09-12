@@ -29,11 +29,9 @@ The plugin is intentionally X1S-only. It is not a generic SofaBaton integration 
 - Plugin type: dynamic platform.
 - Module format: ESM.
 
-### Current alpha limitation
+### Current alpha behavior
 
-The first alpha uses manual activity mapping. You configure the X1S activity IDs yourself, then the plugin exposes those activities in Apple Home.
-
-Automatic activity catalog discovery is planned, but it must be validated on real X1S hardware before the plugin can rely on it.
+The plugin reads the X1S activity catalog automatically from the local hub when `hubIp` is configured. Manual activity mapping remains available as a fallback or to override discovered names.
 
 ## Francais
 
@@ -64,8 +62,6 @@ Le plugin cible volontairement la X1S uniquement. Ce n'est pas une integration S
 - Type de plugin : plateforme dynamique.
 - Format de module : ESM.
 
-### Limite actuelle de l'alpha
+### Comportement actuel de l'alpha
 
-La premiere alpha utilise une configuration manuelle des activites. Vous renseignez vous-meme les identifiants d'activites X1S, puis le plugin expose ces activites dans Apple Maison.
-
-La decouverte automatique du catalogue d'activites est prevue, mais elle doit etre validee sur une vraie X1S avant que le plugin puisse s'appuyer dessus.
+Le plugin lit automatiquement le catalogue d'activites X1S depuis le hub local quand `hubIp` est configure. La configuration manuelle reste disponible comme secours ou pour remplacer les noms detectes.

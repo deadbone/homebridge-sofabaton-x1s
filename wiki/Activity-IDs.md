@@ -4,7 +4,7 @@
 
 Activity IDs are the numeric identifiers used by the SofaBaton hub protocol.
 
-In the current alpha, you enter these IDs manually in `manualActivities`.
+In the current alpha, the plugin can read these IDs automatically from the local X1S hub when `hubIp` and `discovery` are configured.
 
 ```json
 "manualActivities": [
@@ -22,9 +22,15 @@ The id is used for two things:
 
 Changing the id creates a different HomeKit accessory.
 
+## Manual fallback
+
+Use `manualActivities` only when discovery is disabled, discovery fails, or you want to override a discovered name.
+
+Manual entries with the same id replace the discovered activity name.
+
 ## Alpha testing workflow
 
-Until automatic catalog discovery is validated, use a cautious workflow:
+If you use manual entries, use a cautious workflow:
 
 1. Add one activity.
 2. Restart Homebridge.
@@ -34,15 +40,15 @@ Until automatic catalog discovery is validated, use a cautious workflow:
 
 Keep notes of the working id/name pairs for your X1S.
 
-## Future behavior
+## Identity rule
 
-Automatic activity catalog discovery should eventually read these ids directly from the hub. The plugin will still preserve the same identity rule: id changes create new accessories, name changes do not.
+The plugin preserves the same identity rule for discovered and manual activities: id changes create new accessories, name changes do not.
 
 ## Francais
 
 Les identifiants d'activites sont les identifiants numeriques utilises par le protocole du hub SofaBaton.
 
-Dans l'alpha actuelle, vous renseignez ces identifiants manuellement dans `manualActivities`.
+Dans l'alpha actuelle, le plugin peut lire ces identifiants automatiquement depuis le hub X1S local quand `hubIp` et `discovery` sont configures.
 
 ```json
 "manualActivities": [
@@ -60,9 +66,15 @@ L'identifiant sert a deux choses :
 
 Changer l'identifiant cree un accessoire HomeKit different.
 
+## Secours manuel
+
+Utilisez `manualActivities` uniquement quand la decouverte est desactivee, quand elle echoue, ou quand vous voulez remplacer un nom detecte.
+
+Les entrees manuelles avec le meme id remplacent le nom d'activite detecte.
+
 ## Methode conseillee pendant l'alpha
 
-Tant que la decouverte automatique du catalogue n'est pas validee, utilisez une methode prudente :
+Si vous utilisez des entrees manuelles, utilisez une methode prudente :
 
 1. Ajoutez une seule activite.
 2. Redemarrez Homebridge.
@@ -72,6 +84,6 @@ Tant que la decouverte automatique du catalogue n'est pas validee, utilisez une 
 
 Gardez une note des couples id/nom qui fonctionnent pour votre X1S.
 
-## Comportement futur
+## Regle d'identite
 
-La decouverte automatique du catalogue devrait a terme lire ces identifiants directement depuis le hub. Le plugin conservera la meme regle d'identite : changer l'id cree de nouveaux accessoires, changer le nom ne les recree pas.
+Le plugin conserve la meme regle d'identite pour les activites detectees et manuelles : changer l'id cree de nouveaux accessoires, changer le nom ne les recree pas.

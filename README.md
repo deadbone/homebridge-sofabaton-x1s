@@ -13,13 +13,14 @@ It currently provides:
 - Homebridge dynamic platform alias `SofaBatonX1S`;
 - HomeKit Television accessory with SofaBaton activities exposed as inputs;
 - optional momentary HomeKit switches, one per activity;
-- manual activity configuration;
+- automatic activity catalog discovery from the local X1S hub;
+- optional manual activity configuration as fallback or override;
 - local X1S activation frame support;
 - plugin icon asset;
 - CI on Node.js `22.12.0` and `24.x`;
 - npm package archive verification.
 
-Automatic activity catalog discovery is planned, but the first usable path is manual activity mapping so behavior can be validated safely against a real X1S.
+Activity catalog discovery is enabled by default when `hubIp` is configured. `manualActivities` remains available as a fallback or to override discovered names.
 
 ## Requirements
 
@@ -55,10 +56,7 @@ homebridge -D -U ~/.homebridge-dev
   "hubIp": "192.168.1.50",
   "hubId": "living-room-x1s",
   "exposureMode": "tv",
-  "manualActivities": [
-    { "id": 101, "name": "Watch TV" },
-    { "id": 102, "name": "Movie" }
-  ]
+  "discovery": true
 }
 ```
 
@@ -80,8 +78,9 @@ The Television model is preferred because a SofaBaton activity behaves like a me
 - `name`: display name shown in Homebridge and Apple Home.
 - `hubIp`: static IP address of the X1S hub.
 - `hubId`: stable identifier used for HomeKit UUIDs. Keep it stable.
+- `discovery`: automatically reads activities from the local X1S hub. Enabled by default.
 - `exposureMode`: `tv`, `switches`, or `both`.
-- `manualActivities`: list of activities to expose.
+- `manualActivities`: optional fallback or override list.
 - `manualActivities[].id`: SofaBaton activity id.
 - `manualActivities[].name`: HomeKit display name.
 - `manualActivities[].keyCode`: advanced activation key code. Leave `0` unless X1S testing proves another value is required.
@@ -163,13 +162,14 @@ Elle fournit actuellement :
 - une plateforme Homebridge dynamique `SofaBatonX1S` ;
 - un accessoire HomeKit de type Television avec les activités SofaBaton exposées comme entrées ;
 - des interrupteurs HomeKit momentanés optionnels, un par activité ;
-- une configuration manuelle des activités ;
+- la découverte automatique du catalogue d’activités depuis le hub X1S local ;
+- une configuration manuelle optionnelle comme secours ou surcharge ;
 - l’envoi local de trames d’activation X1S ;
 - une icône de plugin ;
 - une CI sur Node.js `22.12.0` et `24.x` ;
 - une vérification de l’archive npm réelle.
 
-La découverte automatique du catalogue d’activités est prévue, mais la première approche utilisable repose sur une configuration manuelle afin de valider le comportement proprement avec une vraie X1S.
+La découverte du catalogue d’activités est activée par défaut quand `hubIp` est configuré. `manualActivities` reste disponible comme secours ou pour remplacer les noms détectés.
 
 ## Prérequis
 
@@ -205,10 +205,7 @@ homebridge -D -U ~/.homebridge-dev
   "hubIp": "192.168.1.50",
   "hubId": "salon-x1s",
   "exposureMode": "tv",
-  "manualActivities": [
-    { "id": 101, "name": "Regarder la TV" },
-    { "id": 102, "name": "Film" }
-  ]
+  "discovery": true
 }
 ```
 
@@ -230,8 +227,9 @@ Le modèle Television est préférable, car une activité SofaBaton se comporte 
 - `name` : nom affiché dans Homebridge et Apple Maison.
 - `hubIp` : adresse IP statique du hub X1S.
 - `hubId` : identifiant stable utilisé pour les UUID HomeKit. Gardez-le stable.
+- `discovery` : lit automatiquement les activités depuis le hub X1S local. Activé par défaut.
 - `exposureMode` : `tv`, `switches` ou `both`.
-- `manualActivities` : liste des activités à exposer.
+- `manualActivities` : liste optionnelle de secours ou de surcharge.
 - `manualActivities[].id` : identifiant de l’activité SofaBaton.
 - `manualActivities[].name` : nom affiché dans HomeKit.
 - `manualActivities[].keyCode` : code avancé d’activation. Laissez `0` sauf si les tests X1S montrent qu’une autre valeur est nécessaire.

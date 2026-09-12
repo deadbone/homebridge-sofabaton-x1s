@@ -8,7 +8,8 @@ Check:
 
 - the platform is named `SofaBatonX1S`;
 - Homebridge restarted after configuration changes;
-- `manualActivities` contains at least one activity when using `switches`;
+- `hubIp` is configured when using automatic discovery;
+- discovery found activities, or `manualActivities` contains at least one fallback activity;
 - Homebridge logs do not show a configuration validation error.
 
 ## The Television accessory appears but the activity does not start
@@ -26,9 +27,9 @@ Enable `debugProtocol` temporarily and restart Homebridge.
 
 ## The wrong activity starts
 
-The configured activity id likely points to another X1S activity.
+The discovered or manually configured activity id likely points to another X1S activity.
 
-Fix the id in `manualActivities`, restart Homebridge, then test again.
+If the activity was manually configured, fix the id in `manualActivities`, restart Homebridge, then test again.
 
 ## Accessories were recreated
 
@@ -52,7 +53,8 @@ Verifiez :
 
 - que la plateforme s'appelle `SofaBatonX1S` ;
 - que Homebridge a redemarre apres les changements de configuration ;
-- que `manualActivities` contient au moins une activite si vous utilisez `switches` ;
+- que `hubIp` est configure si vous utilisez la decouverte automatique ;
+- que la decouverte a trouve des activites, ou que `manualActivities` contient au moins une activite de secours ;
 - que les logs Homebridge n'affichent pas d'erreur de validation de configuration.
 
 ## L'accessoire Television apparait mais l'activite ne demarre pas
@@ -70,9 +72,9 @@ Activez temporairement `debugProtocol` puis redemarrez Homebridge.
 
 ## La mauvaise activite demarre
 
-L'identifiant configure pointe probablement vers une autre activite X1S.
+L'identifiant detecte ou configure manuellement pointe probablement vers une autre activite X1S.
 
-Corrigez l'id dans `manualActivities`, redemarrez Homebridge, puis testez a nouveau.
+Si l'activite est configuree manuellement, corrigez l'id dans `manualActivities`, redemarrez Homebridge, puis testez a nouveau.
 
 ## Les accessoires ont ete recrees
 

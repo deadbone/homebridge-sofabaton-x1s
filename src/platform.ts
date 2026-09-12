@@ -39,7 +39,7 @@ export class SofaBatonX1SPlatform implements DynamicPlatformPlugin {
     }
 
     this.api.on('didFinishLaunching', () => {
-      this.registerAccessories();
+      void this.discoverAndRegisterAccessories();
     });
   }
 
@@ -71,12 +71,45 @@ export class SofaBatonX1SPlatform implements DynamicPlatformPlugin {
     await this.activateActivity({ id, name: 'All Off', keyCode: 0 });
   }
 
-  private registerAccessories(): void {
+  private async discoverAndRegisterAccessories(): Promise<void> {
+    const activities = await this.activitiesForRegistration();
+    this.registerAccessories(activities);
+  }
+
+  private async activitiesForRegistration(): Promise<readonly NormalizedActivityConfig[]> {
+    const manualActivities = this.configData.manualActivities;
+    if (!this.configData.discovery || !this.client) {
+      return manualActivities;
+    }
+
+    try {
+      const discoveredActivities = await this.client.discoverActivities();
+      if (discoveredActivities.length === 0) {
+        this.logger.warn('X1S activity discovery returned no activities. Falling back to manualActivities.');
+        return manualActivities;
+      }
+
+      const activities = new Map<number, NormalizedActivityConfig>();
+      for (const activity of discoveredActivities) {
+        activities.set(activity.id, activity);
+      }
+      for (const activity of manualActivities) {
+        activities.set(activity.id, activity);
+      }
+
+      this.logger.info('Discovered %s SofaBaton X1S activities.', discoveredActivities.length);
+      return [...activities.values()].sort((left, right) => left.id - right.id);
+    } catch (error) {
+      this.logger.warn('SofaBaton X1S activity discovery failed: %s', error instanceof Error ? error.message : String(error));
+      return manualActivities;
+    }
+  }
+
+  private registerAccessories(activities: readonly NormalizedActivityConfig[]): void {
     const expectedUUIDs = new Set<string>();
-    const activities = this.configData.manualActivities;
 
     if (activities.length === 0) {
-      this.logger.warn('No SofaBaton X1S activities configured yet. Add manualActivities until automatic catalog validation is enabled.');
+      this.logger.warn('No SofaBaton X1S activities available. Enable discovery with hubIp or add manualActivities.');
     }
 
     if (this.configData.exposureMode === 'tv' || this.configData.exposureMode === 'both') {
