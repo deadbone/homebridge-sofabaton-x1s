@@ -2,64 +2,88 @@
 
 ## English
 
-## The accessory appears but activities do not start
+## No accessory appears
+
+Check:
+
+- the platform is named `SofaBatonX1S`;
+- Homebridge restarted after configuration changes;
+- `manualActivities` contains at least one activity when using `switches`;
+- Homebridge logs do not show a configuration validation error.
+
+## The Television accessory appears but the activity does not start
 
 Check:
 
 - the X1S hub IP address is correct;
-- Homebridge and the X1S hub are on the same local network path;
-- the activity id in `manualActivities` is correct;
-- no firewall blocks UDP traffic to the hub or the TCP callback port;
-- the activity works from the SofaBaton app and remote.
+- the X1S hub is powered and connected to Wi-Fi;
+- the activity works from the SofaBaton app;
+- the activity id is correct;
+- the Homebridge host can receive the X1S TCP callback;
+- no firewall blocks UDP to the hub or the local callback port.
 
-Enable `debugProtocol` temporarily while diagnosing protocol issues.
+Enable `debugProtocol` temporarily and restart Homebridge.
 
-## HomeKit accessories were recreated
+## The wrong activity starts
+
+The configured activity id likely points to another X1S activity.
+
+Fix the id in `manualActivities`, restart Homebridge, then test again.
+
+## Accessories were recreated
 
 HomeKit identity depends on:
 
 - `hubId`;
-- the activity id;
-- the exposure mode.
+- activity id;
+- accessory role.
 
-Changing `hubId` or activity ids can create new HomeKit accessories. Activity display names can be changed safely when the id stays the same.
+Changing `name` is safe. Changing `hubId` or activity ids creates new accessories.
 
-## Docker networking
+## Docker issues
 
-The X1S protocol uses UDP discovery and a TCP callback from the hub to Homebridge. Docker bridge networking may block this unless ports and routing are configured carefully. Host networking is usually simpler for first validation.
+For the first validation, avoid Docker bridge networking. The X1S hub needs to connect back to Homebridge. If you must use Docker, use host networking or explicitly expose and route `localListenPort`.
 
-## Unsupported model detected
+## Francais
 
-This plugin is X1S-only. X1, X2, U-series, and future SofaBaton models are out of scope until separately specified and tested.
+## Aucun accessoire n'apparait
 
-## Français
+Verifiez :
 
-## L’accessoire apparaît mais les activités ne démarrent pas
+- que la plateforme s'appelle `SofaBatonX1S` ;
+- que Homebridge a redemarre apres les changements de configuration ;
+- que `manualActivities` contient au moins une activite si vous utilisez `switches` ;
+- que les logs Homebridge n'affichent pas d'erreur de validation de configuration.
 
-Vérifiez :
+## L'accessoire Television apparait mais l'activite ne demarre pas
 
-- l’adresse IP du hub X1S ;
-- que Homebridge et le hub X1S sont joignables sur le même réseau local ;
-- que l’identifiant dans `manualActivities` est correct ;
-- qu’aucun pare-feu ne bloque l’UDP vers le hub ou le port TCP de retour ;
-- que l’activité fonctionne depuis l’app SofaBaton et la télécommande.
+Verifiez :
 
-Activez temporairement `debugProtocol` pendant le diagnostic des problèmes de protocole.
+- que l'adresse IP du hub X1S est correcte ;
+- que le hub X1S est alimente et connecte au Wi-Fi ;
+- que l'activite fonctionne depuis l'app SofaBaton ;
+- que l'identifiant d'activite est correct ;
+- que l'hote Homebridge peut recevoir le callback TCP du X1S ;
+- qu'aucun pare-feu ne bloque l'UDP vers le hub ou le port local de callback.
 
-## Les accessoires HomeKit ont été recréés
+Activez temporairement `debugProtocol` puis redemarrez Homebridge.
 
-L’identité HomeKit dépend de :
+## La mauvaise activite demarre
+
+L'identifiant configure pointe probablement vers une autre activite X1S.
+
+Corrigez l'id dans `manualActivities`, redemarrez Homebridge, puis testez a nouveau.
+
+## Les accessoires ont ete recrees
+
+L'identite HomeKit depend de :
 
 - `hubId` ;
-- l’identifiant de l’activité ;
-- le mode d’exposition.
+- l'identifiant d'activite ;
+- le role de l'accessoire.
 
-Modifier `hubId` ou les identifiants d’activités peut créer de nouveaux accessoires HomeKit. Les noms affichés des activités peuvent être modifiés sans recréation si l’identifiant reste le même.
+Changer `name` est sans risque. Changer `hubId` ou les identifiants d'activites cree de nouveaux accessoires.
 
-## Réseau Docker
+## Problemes Docker
 
-Le protocole X1S utilise une découverte UDP et une connexion TCP de retour du hub vers Homebridge. Le réseau bridge Docker peut bloquer ce fonctionnement si les ports et le routage ne sont pas configurés soigneusement. Le mode host est généralement plus simple pour une première validation.
-
-## Modèle non pris en charge
-
-Ce plugin cible uniquement la X1S. Les modèles X1, X2, la série U et les futurs modèles SofaBaton sont hors périmètre tant qu’ils ne sont pas spécifiés et testés séparément.
+Pour la premiere validation, evitez le reseau bridge Docker. Le hub X1S doit pouvoir se reconnecter vers Homebridge. Si Docker est obligatoire, utilisez le mode host ou exposez et routez explicitement `localListenPort`.

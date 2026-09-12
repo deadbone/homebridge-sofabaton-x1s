@@ -2,15 +2,23 @@
 
 ## English
 
-Welcome to the `homebridge-sofabaton-x1s` wiki.
+`homebridge-sofabaton-x1s` exposes SofaBaton X1S activities in Apple Home through Homebridge.
 
-This Homebridge plugin exposes SofaBaton X1S activities in Apple Home. It is intentionally limited to the X1S because that is the model available for validation.
+The plugin is intentionally X1S-only. It is not a generic SofaBaton integration and does not claim support for X1, X2, U-series remotes, or future SofaBaton models.
 
-### Pages
+### Recommended reading order
 
-- [Installation](Installation.md)
-- [Configuration](Configuration.md)
-- [Troubleshooting](Troubleshooting.md)
+1. [Installation](Installation.md)
+2. [Configuration](Configuration.md)
+3. [HomeKit accessories](HomeKit-accessories.md)
+4. [Activity IDs](Activity-IDs.md)
+5. [Network and X1S protocol](Network-and-X1S-protocol.md)
+6. [Troubleshooting](Troubleshooting.md)
+
+### Reference pages
+
+- [Security and privacy](Security-and-privacy.md)
+- [Development](Development.md)
 - [Publishing to npm](Publishing-to-npm.md)
 
 ### Compatibility
@@ -21,28 +29,34 @@ This Homebridge plugin exposes SofaBaton X1S activities in Apple Home. It is int
 - Plugin type: dynamic platform.
 - Module format: ESM.
 
-### Scope
+### Current alpha limitation
 
-The plugin controls activities already configured in the SofaBaton app. It does not create SofaBaton devices, edit activities, learn IR commands, or replace the official SofaBaton app.
+The first alpha uses manual activity mapping. You configure the X1S activity IDs yourself, then the plugin exposes those activities in Apple Home.
 
-### Privacy
+Automatic activity catalog discovery is planned, but it must be validated on real X1S hardware before the plugin can rely on it.
 
-The plugin talks locally to the configured X1S hub. It does not use SofaBaton cloud login, telemetry, or analytics.
+## Francais
 
-## Français
+`homebridge-sofabaton-x1s` expose les activites SofaBaton X1S dans Apple Maison via Homebridge.
 
-Bienvenue dans le wiki de `homebridge-sofabaton-x1s`.
+Le plugin cible volontairement la X1S uniquement. Ce n'est pas une integration SofaBaton generique et il ne promet pas de compatibilite avec X1, X2, la serie U ou les futurs modeles SofaBaton.
 
-Ce plugin Homebridge expose les activités SofaBaton X1S dans Apple Maison. Il cible volontairement la X1S uniquement, car c’est le modèle disponible pour validation.
+### Ordre de lecture conseille
 
-### Pages
+1. [Installation](Installation.md)
+2. [Configuration](Configuration.md)
+3. [Accessoires HomeKit](HomeKit-accessories.md)
+4. [Identifiants d'activites](Activity-IDs.md)
+5. [Reseau et protocole X1S](Network-and-X1S-protocol.md)
+6. [Depannage](Troubleshooting.md)
 
-- [Installation](Installation.md)
-- [Configuration](Configuration.md)
-- [Dépannage](Troubleshooting.md)
+### Pages de reference
+
+- [Securite et confidentialite](Security-and-privacy.md)
+- [Developpement](Development.md)
 - [Publication sur npm](Publishing-to-npm.md)
 
-### Compatibilité
+### Compatibilite
 
 - SofaBaton X1S uniquement.
 - Homebridge `^1.6.0 || ^2.0.0`.
@@ -50,10 +64,8 @@ Ce plugin Homebridge expose les activités SofaBaton X1S dans Apple Maison. Il c
 - Type de plugin : plateforme dynamique.
 - Format de module : ESM.
 
-### Périmètre
+### Limite actuelle de l'alpha
 
-Le plugin contrôle les activités déjà configurées dans l’app SofaBaton. Il ne crée pas de périphériques SofaBaton, ne modifie pas les activités, n’apprend pas de commandes IR et ne remplace pas l’app officielle SofaBaton.
+La premiere alpha utilise une configuration manuelle des activites. Vous renseignez vous-meme les identifiants d'activites X1S, puis le plugin expose ces activites dans Apple Maison.
 
-### Confidentialité
-
-Le plugin communique localement avec le hub X1S configuré. Il n’utilise pas de connexion cloud SofaBaton, pas de télémétrie et pas d’analytics.
+La decouverte automatique du catalogue d'activites est prevue, mais elle doit etre validee sur une vraie X1S avant que le plugin puisse s'appuyer dessus.

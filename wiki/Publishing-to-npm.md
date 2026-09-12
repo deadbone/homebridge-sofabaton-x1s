@@ -2,19 +2,18 @@
 
 ## English
 
-Do not publish without explicit maintainer confirmation.
+Do not publish without an explicit release decision.
 
-The repository is prepared for npm Trusted Publishing through GitHub Actions.
+Publishing is prepared for GitHub Actions Trusted Publishing. Do not create an npm token and do not configure `NODE_AUTH_TOKEN`.
 
-Trusted Publishing settings on npm:
+Configure npmjs.com package settings > Trusted Publishing > GitHub Actions with:
 
-- owner/repository: `deadbone/homebridge-sofabaton-x1s`
-- workflow file: `publish.yml`
-- environment: `npm`
+- Organization or user: `deadbone`
+- Repository: `homebridge-sofabaton-x1s`
+- Workflow filename: `publish.yml`
+- Environment name: `npm`
 
-## Validation
-
-Run locally before release:
+## Local checks
 
 ```sh
 npm run lint
@@ -24,62 +23,36 @@ npm run verify:pack
 npm pack --dry-run
 ```
 
-## Alpha release
+## PR alpha builds
 
-For manual fallback only:
+Internal pull requests can publish temporary alpha packages with the npm `alpha` tag:
 
 ```sh
-npm login
-npm run lint
-npm run build
-npm test
-npm run verify:pack
-npm pack --dry-run
-npm publish --tag alpha
+npm install -g homebridge-sofabaton-x1s@alpha
 ```
 
-The GitHub workflow can also publish temporary alpha packages from repository pull requests using the `alpha` dist-tag.
+Exact versions use:
 
-## Tagged release
+```text
+<next-patch>-alpha.pr.<PR_NUMBER>.<RUN_NUMBER>.<RUN_ATTEMPT>
+```
+
+## Tagged releases
 
 The publish workflow accepts tags matching `v*.*.*`.
 
 The tag must match `package.json` exactly:
 
 ```text
-package.json version: 0.1.0-alpha.1
+package.json: 0.1.0-alpha.1
 git tag: v0.1.0-alpha.1
 ```
 
 Prerelease tags create prerelease GitHub Releases. Stable tags create latest GitHub Releases.
 
-## Français
+## Manual fallback
 
-Ne publiez pas sans confirmation explicite du mainteneur.
-
-Le dépôt est préparé pour npm Trusted Publishing via GitHub Actions.
-
-Configuration Trusted Publishing côté npm :
-
-- owner/repository : `deadbone/homebridge-sofabaton-x1s`
-- workflow file : `publish.yml`
-- environment : `npm`
-
-## Validation
-
-À lancer localement avant publication :
-
-```sh
-npm run lint
-npm run build
-npm test
-npm run verify:pack
-npm pack --dry-run
-```
-
-## Publication alpha
-
-Uniquement comme solution manuelle de secours :
+Use only if Trusted Publishing is not available and publication was explicitly approved:
 
 ```sh
 npm login
@@ -91,17 +64,66 @@ npm pack --dry-run
 npm publish --tag alpha
 ```
 
-Le workflow GitHub peut aussi publier des paquets alpha temporaires depuis les pull requests du dépôt avec le dist-tag `alpha`.
+## Francais
 
-## Publication taguée
+Ne publiez pas sans decision explicite de release.
 
-Le workflow de publication accepte les tags correspondant à `v*.*.*`.
+La publication est preparee pour GitHub Actions Trusted Publishing. Ne creez pas de token npm et ne configurez pas `NODE_AUTH_TOKEN`.
 
-Le tag doit correspondre exactement à `package.json` :
+Configurez les parametres du package sur npmjs.com > Trusted Publishing > GitHub Actions avec :
+
+- Organization or user : `deadbone`
+- Repository : `homebridge-sofabaton-x1s`
+- Workflow filename : `publish.yml`
+- Environment name : `npm`
+
+## Verifications locales
+
+```sh
+npm run lint
+npm run build
+npm test
+npm run verify:pack
+npm pack --dry-run
+```
+
+## Builds alpha de PR
+
+Les pull requests internes peuvent publier des paquets alpha temporaires avec le tag npm `alpha` :
+
+```sh
+npm install -g homebridge-sofabaton-x1s@alpha
+```
+
+Les versions exactes utilisent :
 
 ```text
-version package.json : 0.1.0-alpha.1
+<next-patch>-alpha.pr.<PR_NUMBER>.<RUN_NUMBER>.<RUN_ATTEMPT>
+```
+
+## Releases taguees
+
+Le workflow de publication accepte les tags correspondant a `v*.*.*`.
+
+Le tag doit correspondre exactement a `package.json` :
+
+```text
+package.json : 0.1.0-alpha.1
 tag git : v0.1.0-alpha.1
 ```
 
-Les tags de préversion créent des GitHub Releases en prerelease. Les tags stables créent des GitHub Releases latest.
+Les tags de prerelease creent des GitHub Releases en prerelease. Les tags stables creent des GitHub Releases latest.
+
+## Secours manuel
+
+A utiliser uniquement si Trusted Publishing n'est pas disponible et que la publication a ete explicitement approuvee :
+
+```sh
+npm login
+npm run lint
+npm run build
+npm test
+npm run verify:pack
+npm pack --dry-run
+npm publish --tag alpha
+```
