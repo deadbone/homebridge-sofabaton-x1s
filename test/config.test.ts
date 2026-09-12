@@ -28,6 +28,18 @@ describe('normalizeConfig', () => {
     expect(config.manualActivities).toEqual([]);
   });
 
+  it('ignores Homebridge UI blank manual activity rows with default values', () => {
+    const config = normalizeConfig({
+      platform: 'SofaBatonX1S',
+      name: 'Living Room X1S',
+      hubIp: '192.168.1.50',
+      discovery: true,
+      manualActivities: [{ id: null, name: '', keyCode: 0 }],
+    });
+
+    expect(config.manualActivities).toEqual([]);
+  });
+
   it('rejects duplicate activity ids', () => {
     expect(() => normalizeConfig({
       platform: 'SofaBatonX1S',

@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.0-alpha.5
+
+- Ignores blank manual activity rows emitted by Homebridge UI during discovery-only setup.
+
 ## 0.1.0-alpha.4
 
 - Allows saving a discovery-only Homebridge UI configuration without manual activities.

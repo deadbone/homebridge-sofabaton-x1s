@@ -116,7 +116,7 @@ function optionalBoolean(value: unknown, fallback: boolean): boolean {
 }
 
 function optionalInteger(value: unknown, min: number, max: number, path: string): number | undefined {
-  if (value === undefined || value === '') {
+  if (isBlank(value)) {
     return undefined;
   }
   return requiredInteger(value, min, max, path);
@@ -137,7 +137,11 @@ function requiredInteger(value: unknown, min: number, max: number, path: string)
 }
 
 function isEmptyActivity(value: Record<string, unknown>): boolean {
-  return ['id', 'name', 'keyCode'].every((key) => value[key] === undefined || value[key] === '');
+  return isBlank(value.id) && isBlank(value.name) && (isBlank(value.keyCode) || value.keyCode === 0);
+}
+
+function isBlank(value: unknown): boolean {
+  return value === undefined || value === null || (typeof value === 'string' && value.trim().length === 0);
 }
 
 function sanitizeId(value: string): string {
