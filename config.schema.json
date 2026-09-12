@@ -61,7 +61,6 @@
         "items": {
           "title": "Activity",
           "type": "object",
-          "required": ["id", "name"],
           "additionalProperties": false,
           "properties": {
             "id": {

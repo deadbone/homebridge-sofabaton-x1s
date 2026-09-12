@@ -15,6 +15,19 @@ describe('normalizeConfig', () => {
     expect(config.manualActivities).toEqual([{ id: 101, name: 'Watch TV', keyCode: 0 }]);
   });
 
+  it('allows discovery-only configuration with an empty manual activity row', () => {
+    const config = normalizeConfig({
+      platform: 'SofaBatonX1S',
+      name: 'Living Room X1S',
+      hubIp: '192.168.1.50',
+      discovery: true,
+      manualActivities: [{}],
+    });
+
+    expect(config.discovery).toBe(true);
+    expect(config.manualActivities).toEqual([]);
+  });
+
   it('rejects duplicate activity ids', () => {
     expect(() => normalizeConfig({
       platform: 'SofaBatonX1S',

@@ -49,21 +49,29 @@ function normalizeActivities(value: unknown): readonly ManualActivityConfig[] {
   }
 
   const ids = new Set<number>();
-  return value.map((raw, index) => {
+  const activities: ManualActivityConfig[] = [];
+
+  for (const [index, raw] of value.entries()) {
     if (!isRecord(raw)) {
       throw new ConfigValidationError(`manualActivities[${index}] must be an object.`);
     }
+    if (isEmptyActivity(raw)) {
+      continue;
+    }
+
     const id = requiredInteger(raw.id, 1, 255, `manualActivities[${index}].id`);
     if (ids.has(id)) {
       throw new ConfigValidationError(`manualActivities contains duplicate activity id ${id}.`);
     }
     ids.add(id);
-    return {
+    activities.push({
       id,
       name: requiredString(raw.name, `manualActivities[${index}].name`),
       keyCode: optionalInteger(raw.keyCode, 0, 255, `manualActivities[${index}].keyCode`) ?? 0,
-    };
-  });
+    });
+  }
+
+  return activities;
 }
 
 function exposure(value: unknown): ExposureMode {
@@ -126,6 +134,10 @@ function requiredInteger(value: unknown, min: number, max: number, path: string)
     throw new ConfigValidationError(`${path} must be an integer between ${min} and ${max}.`);
   }
   return value;
+}
+
+function isEmptyActivity(value: Record<string, unknown>): boolean {
+  return ['id', 'name', 'keyCode'].every((key) => value[key] === undefined || value[key] === '');
 }
 
 function sanitizeId(value: string): string {

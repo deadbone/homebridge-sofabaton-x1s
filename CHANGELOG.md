@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- Allows saving a discovery-only Homebridge UI configuration without manual activities.
+
 ## 0.1.0-alpha.3
 
 - Completes required HomeKit Television and InputSource characteristics for pairing stability.
