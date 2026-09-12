@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.0-alpha.3
+
+- Completes required HomeKit Television and InputSource characteristics for pairing stability.
+
 ## 0.1.0-alpha.2
 
 - Avoids publishing an empty Television accessory when no X1S activities are available.

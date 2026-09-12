@@ -29,6 +29,11 @@ export class X1STelevisionAccessory {
     this.televisionService.getCharacteristic(Characteristic.Active)
       .onSet(this.handleActive.bind(this));
 
+    this.televisionService.getCharacteristic(Characteristic.RemoteKey)
+      .onSet(() => {
+        this.platform.logger.debug('Ignoring SofaBaton X1S TV remote key event.');
+      });
+
     for (const activity of this.activities) {
       const input = this.inputService(activity);
       this.televisionService.addLinkedService(input);
@@ -62,7 +67,8 @@ export class X1STelevisionAccessory {
       .setCharacteristic(Characteristic.ConfiguredName, activity.name)
       .setCharacteristic(Characteristic.Name, activity.name)
       .setCharacteristic(Characteristic.IsConfigured, Characteristic.IsConfigured.CONFIGURED)
-      .setCharacteristic(Characteristic.InputSourceType, Characteristic.InputSourceType.APPLICATION);
+      .setCharacteristic(Characteristic.InputSourceType, Characteristic.InputSourceType.APPLICATION)
+      .setCharacteristic(Characteristic.CurrentVisibilityState, Characteristic.CurrentVisibilityState.SHOWN);
     return service;
   }
 }
