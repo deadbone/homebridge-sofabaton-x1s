@@ -12,10 +12,16 @@ export class X1STelevisionAccessory {
   ) {
     const { Service, Characteristic } = this.platform.api.hap;
     this.televisionService = this.accessory.getService(Service.Television) ?? this.accessory.addService(Service.Television);
+    const initialActivity = this.activities[0];
     this.televisionService
       .setCharacteristic(Characteristic.Name, this.platform.configData.name)
       .setCharacteristic(Characteristic.ConfiguredName, this.platform.configData.name)
-      .setCharacteristic(Characteristic.SleepDiscoveryMode, Characteristic.SleepDiscoveryMode.ALWAYS_DISCOVERABLE);
+      .setCharacteristic(Characteristic.SleepDiscoveryMode, Characteristic.SleepDiscoveryMode.ALWAYS_DISCOVERABLE)
+      .setCharacteristic(Characteristic.Active, Characteristic.Active.INACTIVE);
+
+    if (initialActivity) {
+      this.televisionService.setCharacteristic(Characteristic.ActiveIdentifier, initialActivity.id);
+    }
 
     this.televisionService.getCharacteristic(Characteristic.ActiveIdentifier)
       .onSet(this.handleActiveIdentifier.bind(this));

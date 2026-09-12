@@ -12,6 +12,8 @@ Check:
 - discovery found activities, or `manualActivities` contains at least one fallback activity;
 - Homebridge logs do not show a configuration validation error.
 
+The plugin intentionally does not publish an empty Television accessory. If no activity can be discovered or configured, Homebridge can still publish the bridge, but Apple Home will not show a SofaBaton accessory behind it.
+
 ## The Television accessory appears but the activity does not start
 
 Check:
@@ -56,6 +58,8 @@ Verifiez :
 - que `hubIp` est configure si vous utilisez la decouverte automatique ;
 - que la decouverte a trouve des activites, ou que `manualActivities` contient au moins une activite de secours ;
 - que les logs Homebridge n'affichent pas d'erreur de validation de configuration.
+
+Le plugin ne publie volontairement pas d'accessoire Television vide. Si aucune activite n'est detectee ou configuree, Homebridge peut quand meme publier le pont, mais Apple Maison n'affichera pas d'accessoire SofaBaton derriere lui.
 
 ## L'accessoire Television apparait mais l'activite ne demarre pas
 

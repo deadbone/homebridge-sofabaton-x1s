@@ -110,6 +110,12 @@ export class SofaBatonX1SPlatform implements DynamicPlatformPlugin {
 
     if (activities.length === 0) {
       this.logger.warn('No SofaBaton X1S activities available. Enable discovery with hubIp or add manualActivities.');
+      for (const [uuid, accessory] of this.accessories) {
+        this.logger.info('Removing stale accessory from cache: %s', accessory.displayName);
+        this.api.unregisterPlatformAccessories(PLUGIN_NAME, PLATFORM_NAME, [accessory]);
+        this.accessories.delete(uuid);
+      }
+      return;
     }
 
     if (this.configData.exposureMode === 'tv' || this.configData.exposureMode === 'both') {

@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.1.0-alpha.2
+
+- Avoids publishing an empty Television accessory when no X1S activities are available.
+- Initializes the Television active state and active input identifier from the first discovered or manual activity.
+
 ## 0.1.0-alpha.1
 
 - Adds automatic local X1S activity catalog discovery.
