@@ -109,8 +109,8 @@ The GitHub workflow is prepared for npm Trusted Publishing:
 
 - pull requests from this repository publish temporary alpha builds with the `alpha` dist-tag;
 - tags named `v<package.json version>` publish that exact version;
-- prerelease tags create prerelease GitHub Releases;
-- stable tags create latest GitHub Releases.
+- prerelease tags publish with the npm `alpha` dist-tag and create prerelease GitHub Releases;
+- stable tags publish with the npm `latest` dist-tag and create latest GitHub Releases.
 
 Configure the npm package trusted publisher for:
 
@@ -259,8 +259,8 @@ Le workflow GitHub est prêt pour npm Trusted Publishing :
 
 - les pull requests du dépôt publient des builds alpha temporaires avec le dist-tag `alpha` ;
 - les tags `v<version package.json>` publient exactement cette version ;
-- les tags de préversion créent des GitHub Releases en prerelease ;
-- les tags stables créent des GitHub Releases latest.
+- les tags de préversion publient avec le dist-tag npm `alpha` et créent des GitHub Releases en prerelease ;
+- les tags stables publient avec le dist-tag npm `latest` et créent des GitHub Releases latest.
 
 Configuration npm Trusted Publishing à prévoir :
 

@@ -13,6 +13,8 @@ Configure npmjs.com package settings > Trusted Publishing > GitHub Actions with:
 - Workflow filename: `publish.yml`
 - Environment name: `npm`
 
+Both PR alpha builds and tagged releases use the `npm` GitHub environment, so a single Trusted Publisher configuration covers both paths.
+
 ## Local checks
 
 ```sh
@@ -48,7 +50,7 @@ package.json: 0.1.0-alpha.1
 git tag: v0.1.0-alpha.1
 ```
 
-Prerelease tags create prerelease GitHub Releases. Stable tags create latest GitHub Releases.
+Prerelease tags publish with the npm `alpha` dist-tag and create prerelease GitHub Releases. Stable tags publish with the npm `latest` dist-tag and create latest GitHub Releases.
 
 ## Manual fallback
 
@@ -76,6 +78,8 @@ Configurez les parametres du package sur npmjs.com > Trusted Publishing > GitHub
 - Repository : `homebridge-sofabaton-x1s`
 - Workflow filename : `publish.yml`
 - Environment name : `npm`
+
+Les builds alpha de PR et les releases taguees utilisent tous l'environnement GitHub `npm`, donc une seule configuration Trusted Publisher couvre les deux chemins.
 
 ## Verifications locales
 
@@ -112,7 +116,7 @@ package.json : 0.1.0-alpha.1
 tag git : v0.1.0-alpha.1
 ```
 
-Les tags de prerelease creent des GitHub Releases en prerelease. Les tags stables creent des GitHub Releases latest.
+Les tags de prerelease publient avec le dist-tag npm `alpha` et creent des GitHub Releases en prerelease. Les tags stables publient avec le dist-tag npm `latest` et creent des GitHub Releases latest.
 
 ## Secours manuel
 

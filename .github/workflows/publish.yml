@@ -23,6 +23,7 @@ jobs:
     name: Publish PR alpha
     if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository
     runs-on: ubuntu-latest
+    environment: npm
 
     steps:
       - name: Checkout
@@ -120,7 +121,13 @@ jobs:
         run: npm run verify:pack
 
       - name: Publish
-        run: npm publish --provenance
+        run: |
+          PACKAGE_VERSION="$(node -p "require('./package.json').version")"
+          if [[ "$PACKAGE_VERSION" == *-* ]]; then
+            npm publish --tag alpha --provenance
+          else
+            npm publish --provenance
+          fi
 
       - name: Create GitHub Release
         env:
