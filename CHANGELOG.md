@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.0-alpha.6
+
+- Uses the X1S POWER_ON command code when starting activities from HomeKit.
+
 ## 0.1.0-alpha.5
 
 - Ignores blank manual activity rows emitted by Homebridge UI during discovery-only setup.

@@ -3,6 +3,7 @@ import {
   buildActivateFrame,
   buildActivityCatalogRequestFrame,
   buildAuthRequestFrame,
+  KEY_POWER_ON,
   buildCallMeFrame,
   checksum,
   parseActivityCatalogFrame,
@@ -14,7 +15,7 @@ describe('SofaBaton protocol frames', () => {
   });
 
   it('builds an activity activation frame', () => {
-    expect(buildActivateFrame(0x65, 0x00).toString('hex')).toBe('a55a023f6500a5');
+    expect(buildActivateFrame(0x65, KEY_POWER_ON).toString('hex')).toBe('a55a023f65c66b');
   });
 
   it('builds a CALL_ME frame with callback address and port', () => {
@@ -32,6 +33,6 @@ describe('SofaBaton protocol frames', () => {
       'hex',
     );
 
-    expect(parseActivityCatalogFrame(frame)).toEqual({ id: 101, name: 'Films', keyCode: 0 });
+    expect(parseActivityCatalogFrame(frame)).toEqual({ id: 101, name: 'Films', keyCode: KEY_POWER_ON });
   });
 });

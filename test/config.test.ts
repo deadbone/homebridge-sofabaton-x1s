@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { normalizeConfig } from '../src/config/validation.js';
+import { KEY_POWER_ON } from '../src/sofabaton/protocol.js';
 
 describe('normalizeConfig', () => {
   it('normalizes a minimal X1S configuration', () => {
@@ -12,7 +13,7 @@ describe('normalizeConfig', () => {
 
     expect(config.name).toBe('Living Room X1S');
     expect(config.exposureMode).toBe('tv');
-    expect(config.manualActivities).toEqual([{ id: 101, name: 'Watch TV', keyCode: 0 }]);
+    expect(config.manualActivities).toEqual([{ id: 101, name: 'Watch TV', keyCode: KEY_POWER_ON }]);
   });
 
   it('allows discovery-only configuration with an empty manual activity row', () => {

@@ -1,6 +1,7 @@
 import type { PlatformConfig } from 'homebridge';
 import type { ExposureMode, ManualActivityConfig, NormalizedPlatformConfig } from './types.js';
 import { DEFAULT_PLATFORM_NAME } from '../settings.js';
+import { KEY_POWER_ON } from '../sofabaton/protocol.js';
 
 const EXPOSURE_MODES = new Set<ExposureMode>(['tv', 'switches', 'both']);
 
@@ -67,7 +68,7 @@ function normalizeActivities(value: unknown): readonly ManualActivityConfig[] {
     activities.push({
       id,
       name: requiredString(raw.name, `manualActivities[${index}].name`),
-      keyCode: optionalInteger(raw.keyCode, 0, 255, `manualActivities[${index}].keyCode`) ?? 0,
+      keyCode: optionalInteger(raw.keyCode, 0, 255, `manualActivities[${index}].keyCode`) ?? KEY_POWER_ON,
     });
   }
 

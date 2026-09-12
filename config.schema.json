@@ -76,10 +76,10 @@
             "keyCode": {
               "title": "Activation Key Code",
               "type": "integer",
-              "default": 0,
+              "default": 198,
               "minimum": 0,
               "maximum": 255,
-              "description": "Advanced: key code sent with the activity activation frame. Leave 0 unless live X1S validation shows another value is required."
+              "description": "Advanced: key code sent with the activity activation frame. Default 198 is the X1S POWER_ON command used to start an activity. Change only for protocol testing."
             }
           }
         }

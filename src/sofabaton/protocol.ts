@@ -5,6 +5,8 @@ export const OP_AUTH_REQUEST = 0x0001;
 export const OP_REQ_ACTIVITIES = 0x003A;
 export const OP_REQ_ACTIVATE = 0x023F;
 export const OP_RES_ACTIVITY = 0xD53B;
+export const KEY_POWER_ON = 0xC6;
+export const KEY_POWER_OFF = 0xC7;
 
 export interface SofaBatonActivity {
   readonly id: number;
@@ -76,7 +78,7 @@ export function parseActivityCatalogFrame(frame: Buffer): SofaBatonActivity | un
     return undefined;
   }
 
-  return { id, name, keyCode: 0 };
+  return { id, name, keyCode: KEY_POWER_ON };
 }
 
 function findUtf16Name(payload: Buffer): string | undefined {

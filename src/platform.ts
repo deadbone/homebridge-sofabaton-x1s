@@ -4,6 +4,7 @@ import { X1STelevisionAccessory } from './accessories/x1s-television.js';
 import { ConfigValidationError, normalizeConfig } from './config/validation.js';
 import type { NormalizedActivityConfig, NormalizedPlatformConfig } from './config/types.js';
 import { SofaBatonX1SClient } from './sofabaton/client.js';
+import { KEY_POWER_OFF } from './sofabaton/protocol.js';
 import { ACCESSORY_UUID_NAMESPACE, PLATFORM_NAME, PLUGIN_NAME } from './settings.js';
 import { PluginLogger } from './utils/logger.js';
 import { sanitizeHomeKitName } from './utils/security.js';
@@ -68,7 +69,7 @@ export class SofaBatonX1SPlatform implements DynamicPlatformPlugin {
     if (!this.configData.enableAllOff || id === undefined) {
       return;
     }
-    await this.activateActivity({ id, name: 'All Off', keyCode: 0 });
+    await this.activateActivity({ id, name: 'All Off', keyCode: KEY_POWER_OFF });
   }
 
   private async discoverAndRegisterAccessories(): Promise<void> {
