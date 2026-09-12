@@ -57,6 +57,19 @@ homebridge -D -U ~/.homebridge-dev
 
 Do not publish without explicit maintainer confirmation.
 
+The GitHub workflow is prepared for npm Trusted Publishing:
+
+- pull requests from this repository publish temporary alpha builds with the `alpha` dist-tag;
+- tags named `v<package.json version>` publish that exact version;
+- prerelease tags create prerelease GitHub Releases;
+- stable tags create latest GitHub Releases.
+
+Configure the npm package trusted publisher for:
+
+- owner/repository: `deadbone/homebridge-sofabaton-x1s`
+- workflow file: `publish.yml`
+- environment: `npm`
+
 ```sh
 npm login
 npm run lint
@@ -87,6 +100,19 @@ homebridge -D -U ~/.homebridge-dev
 ### Publication alpha
 
 Ne pas publier sans confirmation explicite du mainteneur.
+
+Le workflow GitHub est pret pour npm Trusted Publishing :
+
+- les pull requests du depot publient des builds alpha temporaires avec le dist-tag `alpha` ;
+- les tags `v<version package.json>` publient exactement cette version ;
+- les tags de prerelease creent des GitHub Releases en prerelease ;
+- les tags stables creent des GitHub Releases latest.
+
+Configuration npm Trusted Publishing a prevoir :
+
+- owner/repository : `deadbone/homebridge-sofabaton-x1s`
+- workflow file : `publish.yml`
+- environment : `npm`
 
 ```sh
 npm login
