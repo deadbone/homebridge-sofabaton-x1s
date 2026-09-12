@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.1.0-alpha.4
 
 - Allows saving a discovery-only Homebridge UI configuration without manual activities.
 
