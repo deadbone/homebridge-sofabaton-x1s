@@ -1,0 +1,8 @@
+# Changelog
+
+## 0.1.0-alpha.0
+
+- Initial alpha implementation for SofaBaton X1S activity control.
+- Adds Homebridge dynamic platform registration.
+- Adds manual activity configuration, Television exposure, optional momentary switches, and local X1S command framing.
+- Adds plugin icon packaging requirement and archive verification.

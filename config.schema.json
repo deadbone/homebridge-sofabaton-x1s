@@ -1,0 +1,133 @@
+{
+  "pluginAlias": "SofaBatonX1S",
+  "pluginType": "platform",
+  "singular": true,
+  "strictValidation": true,
+  "schema": {
+    "type": "object",
+    "required": ["platform", "name"],
+    "additionalProperties": false,
+    "properties": {
+      "platform": {
+        "type": "string",
+        "default": "SofaBatonX1S"
+      },
+      "name": {
+        "title": "Platform Name",
+        "type": "string",
+        "default": "SofaBaton X1S",
+        "description": "Name shown by Homebridge and Apple Home. This plugin is intentionally limited to the SofaBaton X1S."
+      },
+      "hubIp": {
+        "title": "X1S Hub IP Address",
+        "type": "string",
+        "description": "Static IP address of the SofaBaton X1S hub. Recommended for the first versions."
+      },
+      "hubId": {
+        "title": "Stable Hub ID",
+        "type": "string",
+        "description": "Optional stable identifier used for HomeKit UUIDs. Do not change it after pairing."
+      },
+      "discovery": {
+        "title": "Enable Discovery",
+        "type": "boolean",
+        "default": true
+      },
+      "localListenPort": {
+        "title": "Local Listen Port",
+        "type": "integer",
+        "default": 8200,
+        "minimum": 1,
+        "maximum": 65535,
+        "description": "TCP port Homebridge opens while asking the X1S hub to connect back."
+      },
+      "exposureMode": {
+        "title": "HomeKit Exposure",
+        "type": "string",
+        "default": "tv",
+        "oneOf": [
+          { "title": "Television accessory with activity inputs", "enum": ["tv"] },
+          { "title": "One momentary switch per activity", "enum": ["switches"] },
+          { "title": "Television and switches", "enum": ["both"] }
+        ]
+      },
+      "manualActivities": {
+        "title": "Manual Activities",
+        "type": "array",
+        "default": [],
+        "buttonText": "Add X1S Activity",
+        "description": "Configure the SofaBaton X1S activities you programmed in the SofaBaton app. Activity ids are read from X1S tooling or protocol logs until automatic catalog support is validated.",
+        "items": {
+          "title": "Activity",
+          "type": "object",
+          "required": ["id", "name"],
+          "additionalProperties": false,
+          "properties": {
+            "id": {
+              "title": "Activity ID",
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 255
+            },
+            "name": {
+              "title": "Name",
+              "type": "string"
+            },
+            "keyCode": {
+              "title": "Activation Key Code",
+              "type": "integer",
+              "default": 0,
+              "minimum": 0,
+              "maximum": 255,
+              "description": "Advanced: key code sent with the activity activation frame. Leave 0 unless live X1S validation shows another value is required."
+            }
+          }
+        }
+      },
+      "enableAllOff": {
+        "title": "Enable All Off",
+        "type": "boolean",
+        "default": false,
+        "description": "Disabled by default until the all-off path is validated on a real X1S."
+      },
+      "allOffActivityId": {
+        "title": "All Off Activity ID",
+        "type": "integer",
+        "minimum": 1,
+        "maximum": 255
+      },
+      "pollIntervalSeconds": {
+        "title": "Polling Interval",
+        "type": "integer",
+        "default": 60,
+        "minimum": 10,
+        "maximum": 3600
+      },
+      "commandTimeoutSeconds": {
+        "title": "Command Timeout",
+        "type": "integer",
+        "default": 8,
+        "minimum": 1,
+        "maximum": 120
+      },
+      "retryIntervalSeconds": {
+        "title": "Retry Interval",
+        "type": "integer",
+        "default": 30,
+        "minimum": 5,
+        "maximum": 3600
+      },
+      "debugProtocol": {
+        "title": "Debug Protocol Logging",
+        "type": "boolean",
+        "default": false
+      },
+      "assumeX1S": {
+        "title": "Assume Hub Is X1S",
+        "type": "boolean",
+        "default": false,
+        "description": "Development fallback only. Do not enable for other SofaBaton models."
+      }
+    }
+  }
+}

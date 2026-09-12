@@ -1,0 +1,29 @@
+import { describe, expect, it } from 'vitest';
+import { normalizeConfig } from '../src/config/validation.js';
+
+describe('normalizeConfig', () => {
+  it('normalizes a minimal X1S configuration', () => {
+    const config = normalizeConfig({
+      platform: 'SofaBatonX1S',
+      name: 'Living Room X1S',
+      hubIp: '192.168.1.50',
+      manualActivities: [{ id: 101, name: 'Watch TV' }],
+    });
+
+    expect(config.name).toBe('Living Room X1S');
+    expect(config.exposureMode).toBe('tv');
+    expect(config.manualActivities).toEqual([{ id: 101, name: 'Watch TV', keyCode: 0 }]);
+  });
+
+  it('rejects duplicate activity ids', () => {
+    expect(() => normalizeConfig({
+      platform: 'SofaBatonX1S',
+      name: 'X1S',
+      hubIp: '192.168.1.50',
+      manualActivities: [
+        { id: 101, name: 'Watch TV' },
+        { id: 101, name: 'Movie' },
+      ],
+    })).toThrow(/duplicate activity id/);
+  });
+});
