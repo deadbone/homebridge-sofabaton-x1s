@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.1.0-alpha.7
+
+- Exposes activity switches by default and keeps the active activity switch on until it is turned off.
+- Treats manual activity key code 0 as the X1S POWER_ON command to avoid inert manually entered activities.
+
 ## 0.1.0-alpha.6
 
 - Uses the X1S POWER_ON command code when starting activities from HomeKit.

@@ -11,8 +11,8 @@ This is an alpha implementation.
 It currently provides:
 
 - Homebridge dynamic platform alias `SofaBatonX1S`;
-- HomeKit Television accessory with SofaBaton activities exposed as inputs;
-- optional momentary HomeKit switches, one per activity;
+- persistent HomeKit activity switches, one per activity;
+- optional HomeKit Television accessory with SofaBaton activities exposed as inputs;
 - automatic activity catalog discovery from the local X1S hub;
 - optional manual activity configuration as fallback or override;
 - local X1S activation frame support;
@@ -55,7 +55,7 @@ homebridge -D -U ~/.homebridge-dev
   "name": "SofaBaton X1S",
   "hubIp": "192.168.1.50",
   "hubId": "living-room-x1s",
-  "exposureMode": "tv",
+  "exposureMode": "switches",
   "discovery": true
 }
 ```
@@ -64,13 +64,13 @@ Do not change `hubId` or activity ids after pairing unless you are ready for Hom
 
 ## HomeKit Exposure
 
-`exposureMode` controls what appears in Apple Home:
+`exposureMode` controls whether Apple Home also shows a Television accessory. Activity switches are always exposed.
 
-- `tv`: one Television accessory, with activities as inputs. This is the recommended mode.
-- `switches`: one momentary switch per activity.
-- `both`: Television accessory and momentary switches.
+- `switches`: one persistent switch per activity. This is the recommended mode.
+- `tv`: persistent activity switches plus one Television accessory with activities as inputs.
+- `both`: same as `tv`, kept as a compatibility alias.
 
-The Television model is preferred because a SofaBaton activity behaves like a media-room mode selector.
+Turning an activity switch ON starts that activity directly. The active activity switch stays ON until you turn it OFF or start another activity.
 
 ## Configuration Fields
 
@@ -79,11 +79,11 @@ The Television model is preferred because a SofaBaton activity behaves like a me
 - `hubIp`: static IP address of the X1S hub.
 - `hubId`: stable identifier used for HomeKit UUIDs. Keep it stable.
 - `discovery`: automatically reads activities from the local X1S hub. Enabled by default.
-- `exposureMode`: `tv`, `switches`, or `both`.
+- `exposureMode`: `switches`, `tv`, or `both`. Default: `switches`.
 - `manualActivities`: optional fallback or override list.
 - `manualActivities[].id`: SofaBaton activity id.
 - `manualActivities[].name`: HomeKit display name.
-- `manualActivities[].keyCode`: advanced activation key code. Leave `0` unless X1S testing proves another value is required.
+- `manualActivities[].keyCode`: advanced activation key code. `0` and empty values use the X1S `POWER_ON` command.
 - `enableAllOff`: enables the all-off behavior. Disabled by default until the path is validated on real X1S hardware.
 - `allOffActivityId`: activity id used for all-off when enabled.
 - `localListenPort`: local TCP callback port used by the X1S protocol.
@@ -161,7 +161,8 @@ Elle fournit actuellement :
 
 - une plateforme Homebridge dynamique `SofaBatonX1S` ;
 - un accessoire HomeKit de type Television avec les activités SofaBaton exposées comme entrées ;
-- des interrupteurs HomeKit momentanés optionnels, un par activité ;
+- des interrupteurs HomeKit persistants, un par activité ;
+- un accessoire HomeKit Television optionnel ;
 - la découverte automatique du catalogue d’activités depuis le hub X1S local ;
 - une configuration manuelle optionnelle comme secours ou surcharge ;
 - l’envoi local de trames d’activation X1S ;
@@ -204,7 +205,7 @@ homebridge -D -U ~/.homebridge-dev
   "name": "SofaBaton X1S",
   "hubIp": "192.168.1.50",
   "hubId": "salon-x1s",
-  "exposureMode": "tv",
+  "exposureMode": "switches",
   "discovery": true
 }
 ```
@@ -213,13 +214,13 @@ Ne modifiez pas `hubId` ni les identifiants d’activités après l’associatio
 
 ## Exposition HomeKit
 
-`exposureMode` contrôle ce qui apparaît dans l’app Maison :
+`exposureMode` contrôle si l’app Maison affiche aussi un accessoire Television. Les interrupteurs d’activités sont toujours exposés.
 
-- `tv` : un accessoire Television, avec les activités comme entrées. C’est le mode recommandé.
-- `switches` : un interrupteur momentané par activité.
-- `both` : accessoire Television et interrupteurs momentanés.
+- `switches` : un interrupteur persistant par activité. C’est le mode recommandé.
+- `tv` : interrupteurs persistants plus un accessoire Television avec les activités comme entrées.
+- `both` : identique à `tv`, conservé comme alias de compatibilité.
 
-Le modèle Television est préférable, car une activité SofaBaton se comporte comme un mode de pièce multimédia.
+Activer un interrupteur démarre directement l’activité. L’interrupteur de l’activité active reste allumé jusqu’à extinction ou démarrage d’une autre activité.
 
 ## Champs de configuration
 
@@ -228,11 +229,11 @@ Le modèle Television est préférable, car une activité SofaBaton se comporte 
 - `hubIp` : adresse IP statique du hub X1S.
 - `hubId` : identifiant stable utilisé pour les UUID HomeKit. Gardez-le stable.
 - `discovery` : lit automatiquement les activités depuis le hub X1S local. Activé par défaut.
-- `exposureMode` : `tv`, `switches` ou `both`.
+- `exposureMode` : `switches`, `tv` ou `both`. Défaut : `switches`.
 - `manualActivities` : liste optionnelle de secours ou de surcharge.
 - `manualActivities[].id` : identifiant de l’activité SofaBaton.
 - `manualActivities[].name` : nom affiché dans HomeKit.
-- `manualActivities[].keyCode` : code avancé d’activation. Laissez `0` sauf si les tests X1S montrent qu’une autre valeur est nécessaire.
+- `manualActivities[].keyCode` : code avancé d’activation. `0` et les valeurs vides utilisent la commande X1S `POWER_ON`.
 - `enableAllOff` : active le comportement all-off. Désactivé par défaut tant que le chemin n’est pas validé sur une vraie X1S.
 - `allOffActivityId` : identifiant utilisé pour all-off quand l’option est activée.
 - `localListenPort` : port TCP local utilisé par le protocole X1S.

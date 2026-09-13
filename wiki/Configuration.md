@@ -19,7 +19,7 @@ The alpha setup is intentionally explicit:
   "name": "SofaBaton X1S",
   "hubIp": "192.168.1.50",
   "hubId": "living-room-x1s",
-  "exposureMode": "tv",
+  "exposureMode": "switches",
   "discovery": true
 }
 ```
@@ -31,20 +31,20 @@ The alpha setup is intentionally explicit:
 3. Set `name` to the room or hub name, for example `SofaBaton X1S`.
 4. Set `hubIp` to the reserved IP address of the X1S hub.
 5. Set `hubId` to a stable lowercase identifier, for example `living-room-x1s`.
-6. Keep `exposureMode` set to `tv` for the first test.
+6. Keep `exposureMode` set to `switches` for the first test.
 7. Keep `discovery` enabled.
 8. Restart Homebridge.
-9. Open Apple Home and find the Television accessory.
-10. Select each discovered activity input and confirm the X1S starts the expected activity.
+9. Open Apple Home and find one switch per SofaBaton activity.
+10. Turn on each discovered activity switch and confirm the X1S starts the expected activity.
 
 If discovery fails, add one manual activity first. It is much easier to diagnose one known activity than a full room setup.
 
 ## Choosing `exposureMode`
 
-Use `tv` for the normal setup:
+Use `switches` for the normal setup:
 
 ```json
-"exposureMode": "tv"
+"exposureMode": "switches"
 ```
 
 This creates one Television accessory and exposes activities as inputs.
@@ -69,11 +69,11 @@ Use `both` only if you want both models:
 - `hubId`: stable HomeKit identity seed. Do not change it after pairing.
 - `discovery`: reads the local X1S activity catalog automatically. Default: `true`.
 - `localListenPort`: local TCP port used for the X1S callback. Default: `8200`.
-- `exposureMode`: `tv`, `switches`, or `both`. Default: `tv`.
+- `exposureMode`: `switches`, `tv`, or `both`. Default: `switches`. Activity switches are always exposed; `tv` and `both` also add a Television accessory.
 - `manualActivities`: optional fallback or overrides for discovered activities.
 - `manualActivities[].id`: X1S activity id.
 - `manualActivities[].name`: HomeKit display name.
-- `manualActivities[].keyCode`: advanced activation key code. Leave `0` unless X1S testing proves another value is needed.
+- `manualActivities[].keyCode`: advanced activation key code. `0` and empty values use the X1S `POWER_ON` command.
 - `enableAllOff`: enables all-off behavior. Default: `false`.
 - `allOffActivityId`: activity id used for all-off when enabled.
 - `commandTimeoutSeconds`: command timeout. Default: `8`.
@@ -98,7 +98,7 @@ La configuration alpha est volontairement explicite :
   "name": "SofaBaton X1S",
   "hubIp": "192.168.1.50",
   "hubId": "salon-x1s",
-  "exposureMode": "tv",
+  "exposureMode": "switches",
   "discovery": true
 }
 ```
@@ -110,20 +110,20 @@ La configuration alpha est volontairement explicite :
 3. Renseignez `name` avec le nom de la piece ou du hub, par exemple `SofaBaton X1S`.
 4. Renseignez `hubIp` avec l'adresse IP reservee du hub X1S.
 5. Renseignez `hubId` avec un identifiant stable en minuscules, par exemple `salon-x1s`.
-6. Gardez `exposureMode` sur `tv` pour le premier test.
+6. Gardez `exposureMode` sur `switches` pour le premier test.
 7. Gardez `discovery` active.
 8. Redemarrez Homebridge.
-9. Ouvrez Apple Maison et trouvez l'accessoire Television.
-10. Selectionnez chaque entree d'activite detectee et verifiez que la X1S demarre l'activite attendue.
+9. Ouvrez Apple Maison et trouvez un interrupteur par activite SofaBaton.
+10. Allumez chaque interrupteur d'activite detectee et verifiez que la X1S demarre l'activite attendue.
 
 Si la decouverte echoue, ajoutez d'abord une seule activite manuelle. Il est beaucoup plus simple de diagnostiquer une activite connue qu'une configuration complete de salon.
 
 ## Choisir `exposureMode`
 
-Utilisez `tv` pour la configuration normale :
+Utilisez `switches` pour la configuration normale :
 
 ```json
-"exposureMode": "tv"
+"exposureMode": "switches"
 ```
 
 Cela cree un accessoire Television et expose les activites comme entrees.
@@ -148,11 +148,11 @@ Utilisez `both` uniquement si vous voulez les deux modeles :
 - `hubId` : base d'identite HomeKit stable. Ne le changez pas apres l'association.
 - `discovery` : lit automatiquement le catalogue d'activites X1S local. Defaut : `true`.
 - `localListenPort` : port TCP local utilise pour le callback X1S. Defaut : `8200`.
-- `exposureMode` : `tv`, `switches` ou `both`. Defaut : `tv`.
+- `exposureMode` : `switches`, `tv` ou `both`. Defaut : `switches`. Les interrupteurs d'activites sont toujours exposes ; `tv` et `both` ajoutent aussi un accessoire Television.
 - `manualActivities` : secours optionnel ou surcharge des activites detectees.
 - `manualActivities[].id` : identifiant d'activite X1S.
 - `manualActivities[].name` : nom affiche dans HomeKit.
-- `manualActivities[].keyCode` : code avance d'activation. Laissez `0` sauf si les tests X1S prouvent qu'une autre valeur est necessaire.
+- `manualActivities[].keyCode` : code avance d'activation. `0` et les valeurs vides utilisent la commande X1S `POWER_ON`.
 - `enableAllOff` : active le comportement all-off. Defaut : `false`.
 - `allOffActivityId` : identifiant d'activite utilise pour all-off quand active.
 - `commandTimeoutSeconds` : delai maximal d'une commande. Defaut : `8`.

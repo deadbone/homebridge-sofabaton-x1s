@@ -68,16 +68,21 @@ function normalizeActivities(value: unknown): readonly ManualActivityConfig[] {
     activities.push({
       id,
       name: requiredString(raw.name, `manualActivities[${index}].name`),
-      keyCode: optionalInteger(raw.keyCode, 0, 255, `manualActivities[${index}].keyCode`) ?? KEY_POWER_ON,
+      keyCode: normalizeActivityKeyCode(raw.keyCode, `manualActivities[${index}].keyCode`),
     });
   }
 
   return activities;
 }
 
+function normalizeActivityKeyCode(value: unknown, path: string): number {
+  const keyCode = optionalInteger(value, 0, 255, path);
+  return keyCode === undefined || keyCode === 0 ? KEY_POWER_ON : keyCode;
+}
+
 function exposure(value: unknown): ExposureMode {
   if (value === undefined) {
-    return 'tv';
+    return 'switches';
   }
   if (typeof value !== 'string' || !EXPOSURE_MODES.has(value as ExposureMode)) {
     throw new ConfigValidationError('exposureMode must be one of tv, switches, or both.');

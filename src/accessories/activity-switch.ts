@@ -12,19 +12,27 @@ export class ActivitySwitchAccessory {
   ) {
     const { Service, Characteristic } = this.platform.api.hap;
     this.service = this.accessory.getService(Service.Switch) ?? this.accessory.addService(Service.Switch);
-    this.service.setCharacteristic(Characteristic.Name, activity.name);
+    this.service
+      .setCharacteristic(Characteristic.Name, activity.name)
+      .setCharacteristic(Characteristic.ConfiguredName, activity.name);
     this.service.getCharacteristic(Characteristic.On)
       .onSet(this.handleSet.bind(this))
-      .updateValue(false);
+      .updateValue(this.platform.isActivityActive(activity.id));
+    this.platform.registerActivitySwitch(activity.id, this);
+  }
+
+  public updateState(activeActivityId: number | undefined): void {
+    this.service.updateCharacteristic(this.platform.api.hap.Characteristic.On, activeActivityId === this.activity.id);
   }
 
   private async handleSet(value: CharacteristicValue): Promise<void> {
-    if (value !== true) {
+    if (value === true) {
+      await this.platform.activateActivity(this.activity);
       return;
     }
-    await this.platform.activateActivity(this.activity);
-    setTimeout(() => {
-      this.service.updateCharacteristic(this.platform.api.hap.Characteristic.On, false);
-    }, 750);
+
+    if (this.platform.isActivityActive(this.activity.id)) {
+      await this.platform.deactivateActivity(this.activity);
+    }
   }
 }

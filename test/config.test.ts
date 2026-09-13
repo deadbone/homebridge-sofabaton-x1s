@@ -12,7 +12,18 @@ describe('normalizeConfig', () => {
     });
 
     expect(config.name).toBe('Living Room X1S');
-    expect(config.exposureMode).toBe('tv');
+    expect(config.exposureMode).toBe('switches');
+    expect(config.manualActivities).toEqual([{ id: 101, name: 'Watch TV', keyCode: KEY_POWER_ON }]);
+  });
+
+  it('treats manual keyCode 0 as the X1S POWER_ON command', () => {
+    const config = normalizeConfig({
+      platform: 'SofaBatonX1S',
+      name: 'Living Room X1S',
+      hubIp: '192.168.1.50',
+      manualActivities: [{ id: 101, name: 'Watch TV', keyCode: 0 }],
+    });
+
     expect(config.manualActivities).toEqual([{ id: 101, name: 'Watch TV', keyCode: KEY_POWER_ON }]);
   });
 

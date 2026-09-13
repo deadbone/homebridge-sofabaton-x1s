@@ -45,11 +45,11 @@
       "exposureMode": {
         "title": "HomeKit Exposure",
         "type": "string",
-        "default": "tv",
+        "default": "switches",
         "oneOf": [
-          { "title": "Television accessory with activity inputs", "enum": ["tv"] },
-          { "title": "One momentary switch per activity", "enum": ["switches"] },
-          { "title": "Television and switches", "enum": ["both"] }
+          { "title": "Activity switches and Television accessory", "enum": ["tv"] },
+          { "title": "One persistent switch per activity", "enum": ["switches"] },
+          { "title": "Activity switches and Television accessory (legacy alias)", "enum": ["both"] }
         ]
       },
       "manualActivities": {

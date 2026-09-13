@@ -14,6 +14,8 @@ export class SofaBatonX1SPlatform implements DynamicPlatformPlugin {
   public readonly logger: PluginLogger;
   public readonly configData: NormalizedPlatformConfig;
   private readonly client?: SofaBatonX1SClient;
+  private readonly activitySwitches = new Map<number, ActivitySwitchAccessory>();
+  private activeActivityId: number | undefined;
 
   public constructor(
     public readonly log: Logging,
@@ -49,6 +51,15 @@ export class SofaBatonX1SPlatform implements DynamicPlatformPlugin {
     this.accessories.set(accessory.UUID, accessory);
   }
 
+  public registerActivitySwitch(activityId: number, accessory: ActivitySwitchAccessory): void {
+    this.activitySwitches.set(activityId, accessory);
+    accessory.updateState(this.activeActivityId);
+  }
+
+  public isActivityActive(activityId: number): boolean {
+    return this.activeActivityId === activityId;
+  }
+
   public async activateActivity(activity: NormalizedActivityConfig): Promise<void> {
     if (!this.client) {
       this.logger.warn('[%s] Cannot send activity command because hubIp is not configured.', activity.name);
@@ -57,9 +68,30 @@ export class SofaBatonX1SPlatform implements DynamicPlatformPlugin {
     this.logger.info('[%s] Starting SofaBaton X1S activity id %s', activity.name, activity.id);
     try {
       await this.client.activateActivity(activity.id, activity.keyCode);
+      this.activeActivityId = activity.id;
+      this.updateActivitySwitchStates();
       this.logger.info('[%s] SofaBaton X1S command sent', activity.name);
     } catch (error) {
       this.logger.warn('[%s] SofaBaton X1S command failed: %s', activity.name, error instanceof Error ? error.message : String(error));
+      throw error;
+    }
+  }
+
+  public async deactivateActivity(activity: NormalizedActivityConfig): Promise<void> {
+    if (!this.client) {
+      this.logger.warn('[%s] Cannot send activity off command because hubIp is not configured.', activity.name);
+      return;
+    }
+    this.logger.info('[%s] Stopping SofaBaton X1S activity id %s', activity.name, activity.id);
+    try {
+      await this.client.activateActivity(activity.id, KEY_POWER_OFF);
+      if (this.activeActivityId === activity.id) {
+        this.activeActivityId = undefined;
+        this.updateActivitySwitchStates();
+      }
+      this.logger.info('[%s] SofaBaton X1S off command sent', activity.name);
+    } catch (error) {
+      this.logger.warn('[%s] SofaBaton X1S off command failed: %s', activity.name, error instanceof Error ? error.message : String(error));
       throw error;
     }
   }
@@ -69,7 +101,9 @@ export class SofaBatonX1SPlatform implements DynamicPlatformPlugin {
     if (!this.configData.enableAllOff || id === undefined) {
       return;
     }
-    await this.activateActivity({ id, name: 'All Off', keyCode: KEY_POWER_OFF });
+    await this.deactivateActivity({ id, name: 'All Off', keyCode: KEY_POWER_OFF });
+    this.activeActivityId = undefined;
+    this.updateActivitySwitchStates();
   }
 
   private async discoverAndRegisterAccessories(): Promise<void> {
@@ -125,12 +159,10 @@ export class SofaBatonX1SPlatform implements DynamicPlatformPlugin {
       this.registerOrRestoreTelevision(uuid, activities);
     }
 
-    if (this.configData.exposureMode === 'switches' || this.configData.exposureMode === 'both') {
-      for (const activity of activities) {
-        const uuid = this.uuidFor(`activity-switch:${activity.id}`);
-        expectedUUIDs.add(uuid);
-        this.registerOrRestoreSwitch(uuid, activity);
-      }
+    for (const activity of activities) {
+      const uuid = this.uuidFor(`activity-switch:${activity.id}`);
+      expectedUUIDs.add(uuid);
+      this.registerOrRestoreSwitch(uuid, activity);
     }
 
     for (const [uuid, accessory] of this.accessories) {
@@ -139,6 +171,12 @@ export class SofaBatonX1SPlatform implements DynamicPlatformPlugin {
         this.api.unregisterPlatformAccessories(PLUGIN_NAME, PLATFORM_NAME, [accessory]);
         this.accessories.delete(uuid);
       }
+    }
+  }
+
+  private updateActivitySwitchStates(): void {
+    for (const accessory of this.activitySwitches.values()) {
+      accessory.updateState(this.activeActivityId);
     }
   }
 

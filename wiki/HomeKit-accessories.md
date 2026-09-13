@@ -2,11 +2,11 @@
 
 ## English
 
-The plugin can expose SofaBaton activities in two HomeKit shapes.
+The plugin always exposes one persistent switch per SofaBaton activity, and can optionally expose a Television accessory.
 
 ## Television accessory
 
-This is the recommended model.
+This model is optional.
 
 One Television accessory represents the X1S hub. Each SofaBaton activity is exposed as an input source.
 
@@ -21,14 +21,15 @@ This matches how SofaBaton activities behave: they are modes for a media setup, 
 
 ## Activity switches
 
-When `exposureMode` is `switches` or `both`, the plugin creates one momentary switch per activity.
+The plugin creates one persistent switch per activity.
 
 When a switch turns ON:
 
-- the plugin sends the activity command;
-- the switch returns OFF automatically.
+- the plugin sends the activity POWER_ON command directly to the X1S hub;
+- that switch stays ON;
+- the previously active activity switch turns OFF.
 
-Turning the switch OFF does not power off the activity.
+Turning the active switch OFF sends the activity POWER_OFF command.
 
 ## Stable identity
 
@@ -42,11 +43,11 @@ You can rename an activity without recreating the accessory if its id stays the 
 
 ## Francais
 
-Le plugin peut exposer les activites SofaBaton sous deux formes HomeKit.
+Le plugin expose toujours un interrupteur persistant par activite SofaBaton, et peut aussi exposer un accessoire Television.
 
 ## Accessoire Television
 
-C'est le modele recommande.
+Ce modele est optionnel.
 
 Un accessoire Television represente le hub X1S. Chaque activite SofaBaton est exposee comme source d'entree.
 
@@ -61,14 +62,15 @@ Cela correspond au fonctionnement des activites SofaBaton : ce sont des modes po
 
 ## Interrupteurs d'activites
 
-Quand `exposureMode` vaut `switches` ou `both`, le plugin cree un interrupteur momentane par activite.
+Le plugin cree un interrupteur persistant par activite.
 
 Quand un interrupteur passe a ON :
 
-- le plugin envoie la commande d'activite ;
-- l'interrupteur revient automatiquement a OFF.
+- le plugin envoie directement la commande POWER_ON de l'activite au hub X1S ;
+- cet interrupteur reste allume ;
+- l'interrupteur de l'activite precedente s'eteint.
 
-Passer l'interrupteur a OFF n'eteint pas l'activite.
+Passer l'interrupteur actif a OFF envoie la commande POWER_OFF de l'activite.
 
 ## Identite stable
 
