@@ -12,9 +12,9 @@ Check:
 - discovery found activities, or `manualActivities` contains at least one fallback activity;
 - Homebridge logs do not show a configuration validation error.
 
-The plugin intentionally does not publish an empty Television accessory. If no activity can be discovered or configured, Homebridge can still publish the bridge, but Apple Home will not show a SofaBaton accessory behind it.
+The plugin intentionally does not publish empty activity accessories. If no activity can be discovered or configured, Homebridge can still publish the bridge, but Apple Home will not show SofaBaton activity switches behind it.
 
-## The Television accessory appears but the activity does not start
+## The accessory appears but the activity does not start
 
 Check:
 
@@ -29,7 +29,7 @@ Enable `debugProtocol` temporarily and restart Homebridge.
 
 ## The wrong activity starts
 
-The discovered or manually configured activity id likely points to another X1S activity.
+For automatically discovered activities, first make sure you are running `homebridge-sofabaton-x1s@alpha` at version `0.1.0-alpha.8` or newer. Older alpha builds could mismatch names and IDs when several catalog frames arrived together.
 
 If the activity was manually configured, fix the id in `manualActivities`, restart Homebridge, then test again.
 
@@ -59,9 +59,9 @@ Verifiez :
 - que la decouverte a trouve des activites, ou que `manualActivities` contient au moins une activite de secours ;
 - que les logs Homebridge n'affichent pas d'erreur de validation de configuration.
 
-Le plugin ne publie volontairement pas d'accessoire Television vide. Si aucune activite n'est detectee ou configuree, Homebridge peut quand meme publier le pont, mais Apple Maison n'affichera pas d'accessoire SofaBaton derriere lui.
+Le plugin ne publie volontairement pas d'accessoires d'activites vides. Si aucune activite n'est detectee ou configuree, Homebridge peut quand meme publier le pont, mais Apple Maison n'affichera pas d'interrupteurs SofaBaton derriere lui.
 
-## L'accessoire Television apparait mais l'activite ne demarre pas
+## L'accessoire apparait mais l'activite ne demarre pas
 
 Verifiez :
 
@@ -76,7 +76,7 @@ Activez temporairement `debugProtocol` puis redemarrez Homebridge.
 
 ## La mauvaise activite demarre
 
-L'identifiant detecte ou configure manuellement pointe probablement vers une autre activite X1S.
+Pour les activites detectees automatiquement, verifiez d'abord que vous utilisez `homebridge-sofabaton-x1s@alpha` en version `0.1.0-alpha.8` ou plus recente. Les anciennes alphas pouvaient melanger les noms et les identifiants quand plusieurs trames de catalogue arrivaient ensemble.
 
 Si l'activite est configuree manuellement, corrigez l'id dans `manualActivities`, redemarrez Homebridge, puis testez a nouveau.
 

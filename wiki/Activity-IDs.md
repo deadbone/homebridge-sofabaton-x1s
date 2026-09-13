@@ -4,7 +4,7 @@
 
 Activity IDs are the numeric identifiers used by the SofaBaton hub protocol.
 
-In the current alpha, the plugin can read these IDs automatically from the local X1S hub when `hubIp` and `discovery` are configured.
+In the current alpha, the plugin can read these IDs automatically from the local X1S hub when `hubIp` and `discovery` are configured. Use `0.1.0-alpha.8` or newer so multi-frame catalog responses keep names matched to the correct IDs.
 
 ```json
 "manualActivities": [
@@ -48,7 +48,7 @@ The plugin preserves the same identity rule for discovered and manual activities
 
 Les identifiants d'activites sont les identifiants numeriques utilises par le protocole du hub SofaBaton.
 
-Dans l'alpha actuelle, le plugin peut lire ces identifiants automatiquement depuis le hub X1S local quand `hubIp` et `discovery` sont configures.
+Dans l'alpha actuelle, le plugin peut lire ces identifiants automatiquement depuis le hub X1S local quand `hubIp` et `discovery` sont configures. Utilisez `0.1.0-alpha.8` ou plus recent pour que les reponses de catalogue multi-trames gardent les noms alignes avec les bons identifiants.
 
 ```json
 "manualActivities": [

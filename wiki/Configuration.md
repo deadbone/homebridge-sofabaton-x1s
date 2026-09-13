@@ -47,15 +47,15 @@ Use `switches` for the normal setup:
 "exposureMode": "switches"
 ```
 
-This creates one Television accessory and exposes activities as inputs.
+This creates one persistent switch per activity and is the recommended first setup.
 
-Use `switches` if your Home app workflow is easier with one switch per activity:
+Use `tv` if you also want a Television accessory with activities exposed as inputs:
 
 ```json
-"exposureMode": "switches"
+"exposureMode": "tv"
 ```
 
-Use `both` only if you want both models:
+Use `both` only as the legacy alias of `tv`:
 
 ```json
 "exposureMode": "both"
@@ -126,15 +126,15 @@ Utilisez `switches` pour la configuration normale :
 "exposureMode": "switches"
 ```
 
-Cela cree un accessoire Television et expose les activites comme entrees.
+Cela cree un interrupteur persistant par activite et c'est la configuration recommandee pour le premier test.
 
-Utilisez `switches` si votre usage dans Maison est plus simple avec un interrupteur par activite :
+Utilisez `tv` si vous voulez aussi un accessoire Television avec les activites exposees comme entrees :
 
 ```json
-"exposureMode": "switches"
+"exposureMode": "tv"
 ```
 
-Utilisez `both` uniquement si vous voulez les deux modeles :
+Utilisez `both` seulement comme alias historique de `tv` :
 
 ```json
 "exposureMode": "both"

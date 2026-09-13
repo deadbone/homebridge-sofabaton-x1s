@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- Aligns README and wiki documentation with the current activity switch behavior, alpha installation path, and X1S discovery notes.
+
 ## 0.1.0-alpha.8
 
 - Parses multiple X1S activity catalog frames from a single TCP packet so activity IDs stay matched to the correct names.

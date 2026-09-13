@@ -15,12 +15,12 @@ It currently provides:
 - optional HomeKit Television accessory with SofaBaton activities exposed as inputs;
 - automatic activity catalog discovery from the local X1S hub;
 - optional manual activity configuration as fallback or override;
-- local X1S activation frame support;
+- local X1S `POWER_ON` / `POWER_OFF` command support;
 - plugin icon asset;
 - CI on Node.js `22.12.0` and `24.x`;
 - npm package archive verification.
 
-Activity catalog discovery is enabled by default when `hubIp` is configured. `manualActivities` remains available as a fallback or to override discovered names.
+Activity catalog discovery is enabled by default when `hubIp` is configured. Discovery parses all catalog frames returned by the hub, and `manualActivities` remains available as a fallback or to override discovered names.
 
 ## Requirements
 
@@ -32,10 +32,10 @@ Activity catalog discovery is enabled by default when `hubIp` is configured. `ma
 
 ## Installation
 
-Install from Homebridge UI when the package is published, or install locally during alpha testing:
+Install the current alpha explicitly with the npm `alpha` dist-tag, either from Homebridge UI or from the terminal:
 
 ```sh
-npm install -g homebridge-sofabaton-x1s
+npm install -g homebridge-sofabaton-x1s@alpha
 ```
 
 For local development:
@@ -70,7 +70,7 @@ Do not change `hubId` or activity ids after pairing unless you are ready for Hom
 - `tv`: persistent activity switches plus one Television accessory with activities as inputs.
 - `both`: same as `tv`, kept as a compatibility alias.
 
-Turning an activity switch ON starts that activity directly. The active activity switch stays ON until you turn it OFF or start another activity.
+Turning an activity switch ON starts that activity directly. The active activity switch stays ON until you turn it OFF or start another activity. HomeKit state is optimistic and kept by the plugin, so changes made only from the SofaBaton app or remote may not be reflected until another HomeKit command runs.
 
 ## Configuration Fields
 
@@ -160,17 +160,16 @@ Cette version est une alpha.
 Elle fournit actuellement :
 
 - une plateforme Homebridge dynamique `SofaBatonX1S` ;
-- un accessoire HomeKit de type Television avec les activités SofaBaton exposées comme entrées ;
 - des interrupteurs HomeKit persistants, un par activité ;
-- un accessoire HomeKit Television optionnel ;
+- un accessoire HomeKit Television optionnel avec les activités SofaBaton exposées comme entrées ;
 - la découverte automatique du catalogue d’activités depuis le hub X1S local ;
 - une configuration manuelle optionnelle comme secours ou surcharge ;
-- l’envoi local de trames d’activation X1S ;
+- l’envoi local des commandes X1S `POWER_ON` / `POWER_OFF` ;
 - une icône de plugin ;
 - une CI sur Node.js `22.12.0` et `24.x` ;
 - une vérification de l’archive npm réelle.
 
-La découverte du catalogue d’activités est activée par défaut quand `hubIp` est configuré. `manualActivities` reste disponible comme secours ou pour remplacer les noms détectés.
+La découverte du catalogue d’activités est activée par défaut quand `hubIp` est configuré. La découverte analyse toutes les trames de catalogue renvoyées par le hub, et `manualActivities` reste disponible comme secours ou pour remplacer les noms détectés.
 
 ## Prérequis
 
@@ -182,10 +181,10 @@ La découverte du catalogue d’activités est activée par défaut quand `hubIp
 
 ## Installation
 
-Installez depuis Homebridge UI quand le paquet sera publié, ou localement pendant les tests alpha :
+Installez explicitement l’alpha courante avec le dist-tag npm `alpha`, depuis Homebridge UI ou depuis le terminal :
 
 ```sh
-npm install -g homebridge-sofabaton-x1s
+npm install -g homebridge-sofabaton-x1s@alpha
 ```
 
 Pour tester localement :
@@ -220,7 +219,7 @@ Ne modifiez pas `hubId` ni les identifiants d’activités après l’associatio
 - `tv` : interrupteurs persistants plus un accessoire Television avec les activités comme entrées.
 - `both` : identique à `tv`, conservé comme alias de compatibilité.
 
-Activer un interrupteur démarre directement l’activité. L’interrupteur de l’activité active reste allumé jusqu’à extinction ou démarrage d’une autre activité.
+Activer un interrupteur démarre directement l’activité. L’interrupteur de l’activité active reste allumé jusqu’à extinction ou démarrage d’une autre activité. L’état HomeKit est optimiste et conservé par le plugin ; les changements faits uniquement depuis l’app SofaBaton ou la télécommande peuvent donc ne pas être reflétés avant une nouvelle commande HomeKit.
 
 ## Champs de configuration
 

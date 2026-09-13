@@ -2,12 +2,12 @@
 
 ## English
 
-Install from Homebridge UI once the package is published on npm.
+Install the current alpha from Homebridge UI by selecting `homebridge-sofabaton-x1s@alpha`, or install it from the terminal:
 
 Command-line install:
 
 ```sh
-npm install -g homebridge-sofabaton-x1s
+npm install -g homebridge-sofabaton-x1s@alpha
 ```
 
 ## Requirements
@@ -25,7 +25,7 @@ npm install -g homebridge-sofabaton-x1s
 2. Confirm each activity starts correctly from the app.
 3. Confirm each activity starts correctly from the physical remote.
 4. Reserve the X1S hub IP address in your router or DHCP server.
-5. Decide whether you want Apple Home to show one Television accessory or one switch per activity.
+5. Keep the default activity switches for the first pairing, then decide whether you also want the optional Television accessory.
 
 Do not start troubleshooting Homebridge until the SofaBaton app and remote are already reliable.
 
@@ -43,12 +43,12 @@ homebridge -D -U ~/.homebridge-dev
 
 ## Francais
 
-Installez le plugin depuis Homebridge UI lorsque le paquet sera publie sur npm.
+Installez l'alpha courante depuis Homebridge UI en choisissant `homebridge-sofabaton-x1s@alpha`, ou depuis le terminal :
 
 Installation en ligne de commande :
 
 ```sh
-npm install -g homebridge-sofabaton-x1s
+npm install -g homebridge-sofabaton-x1s@alpha
 ```
 
 ## Prerequis
@@ -66,7 +66,7 @@ npm install -g homebridge-sofabaton-x1s
 2. Verifiez que chaque activite demarre correctement depuis l'app.
 3. Verifiez que chaque activite demarre correctement depuis la telecommande physique.
 4. Reservez l'adresse IP du hub X1S dans votre routeur ou serveur DHCP.
-5. Choisissez si Apple Maison doit afficher un accessoire Television ou un interrupteur par activite.
+5. Gardez les interrupteurs d'activites par defaut pour le premier appairage, puis choisissez si vous voulez aussi l'accessoire Television optionnel.
 
 Ne depannez pas Homebridge tant que l'app SofaBaton et la telecommande ne sont pas deja fiables.
 
