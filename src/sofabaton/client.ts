@@ -6,7 +6,7 @@ import {
   buildActivityCatalogRequestFrame,
   buildAuthRequestFrame,
   buildCallMeFrame,
-  parseActivityCatalogFrame,
+  parseActivityCatalogFrames,
 } from './protocol.js';
 import type { SofaBatonActivity } from './protocol.js';
 
@@ -111,13 +111,15 @@ async function collectActivities(
     };
 
     const onData = (data: Buffer): void => {
-      const activity = parseActivityCatalogFrame(data);
-      if (!activity) {
+      const parsedActivities = parseActivityCatalogFrames(data);
+      if (parsedActivities.length === 0) {
         debug?.(`Ignoring X1S catalog response frame: ${data.toString('hex')}`);
         return;
       }
-      activities.set(activity.id, activity);
-      debug?.(`Discovered X1S activity ${activity.id}: ${activity.name}`);
+      for (const activity of parsedActivities) {
+        activities.set(activity.id, activity);
+        debug?.(`Discovered X1S activity ${activity.id}: ${activity.name}`);
+      }
       resetQuietTimer();
     };
 

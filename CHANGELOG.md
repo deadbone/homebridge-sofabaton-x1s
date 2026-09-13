@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.0-alpha.8
+
+- Parses multiple X1S activity catalog frames from a single TCP packet so activity IDs stay matched to the correct names.
+
 ## 0.1.0-alpha.7
 
 - Exposes activity switches by default and keeps the active activity switch on until it is turned off.

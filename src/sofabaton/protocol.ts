@@ -58,6 +58,22 @@ export function buildAuthRequestFrame(): Buffer {
   return buildFrame(OP_AUTH_REQUEST);
 }
 
+export function parseActivityCatalogFrames(data: Buffer): readonly SofaBatonActivity[] {
+  const activities: SofaBatonActivity[] = [];
+  const starts = frameStarts(data);
+
+  for (let index = 0; index < starts.length; index += 1) {
+    const start = starts[index];
+    const end = starts[index + 1] ?? data.length;
+    const activity = parseActivityCatalogFrame(data.subarray(start, end));
+    if (activity) {
+      activities.push(activity);
+    }
+  }
+
+  return activities;
+}
+
 export function parseActivityCatalogFrame(frame: Buffer): SofaBatonActivity | undefined {
   if (frame.length < 13 || frame[0] !== SYNC_0 || frame[1] !== SYNC_1) {
     return undefined;
@@ -79,6 +95,16 @@ export function parseActivityCatalogFrame(frame: Buffer): SofaBatonActivity | un
   }
 
   return { id, name, keyCode: KEY_POWER_ON };
+}
+
+function frameStarts(data: Buffer): readonly number[] {
+  const starts: number[] = [];
+  for (let index = 0; index < data.length - 1; index += 1) {
+    if (data[index] === SYNC_0 && data[index + 1] === SYNC_1) {
+      starts.push(index);
+    }
+  }
+  return starts;
 }
 
 function findUtf16Name(payload: Buffer): string | undefined {

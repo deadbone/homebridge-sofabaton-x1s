@@ -7,6 +7,7 @@ import {
   buildCallMeFrame,
   checksum,
   parseActivityCatalogFrame,
+  parseActivityCatalogFrames,
 } from '../src/sofabaton/protocol.js';
 
 describe('SofaBaton protocol frames', () => {
@@ -28,11 +29,38 @@ describe('SofaBaton protocol frames', () => {
   });
 
   it('parses an activity catalog response frame', () => {
-    const frame = Buffer.from(
-      'a55ad53b01000104000100650d010000000000000000000000000000000000000000000100460069006c006d0073000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000460069006c006d00730000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000fc0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000bb37',
-      'hex',
-    );
+    const frame = catalogFrame(101, 'Films');
 
     expect(parseActivityCatalogFrame(frame)).toEqual({ id: 101, name: 'Films', keyCode: KEY_POWER_ON });
   });
+
+  it('parses multiple activity catalog frames from one TCP packet', () => {
+    const packet = Buffer.concat([
+      catalogFrame(101, 'Films'),
+      catalogFrame(102, 'Musique'),
+      catalogFrame(103, 'Xbox'),
+      catalogFrame(104, 'switch 2'),
+    ]);
+
+    expect(parseActivityCatalogFrames(packet)).toEqual([
+      { id: 101, name: 'Films', keyCode: KEY_POWER_ON },
+      { id: 102, name: 'Musique', keyCode: KEY_POWER_ON },
+      { id: 103, name: 'Xbox', keyCode: KEY_POWER_ON },
+      { id: 104, name: 'switch 2', keyCode: KEY_POWER_ON },
+    ]);
+  });
 });
+
+function catalogFrame(id: number, name: string): Buffer {
+  const header = Buffer.alloc(12);
+  header[0] = 0xA5;
+  header[1] = 0x5A;
+  header.writeUInt16BE(0xD53B, 2);
+  header[11] = id;
+
+  const nameBytes = Buffer.from([...name].flatMap((char) => {
+    const code = char.charCodeAt(0);
+    return [code >> 8, code & 0xFF];
+  }));
+  return Buffer.concat([header, nameBytes, Buffer.from([0x00, 0x00, 0x00])]);
+}
