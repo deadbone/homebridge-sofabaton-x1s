@@ -18,23 +18,37 @@ export interface SofaBatonClientOptions {
 }
 
 export class SofaBatonX1SClient {
+  private sessionQueue: Promise<void> = Promise.resolve();
+
   public constructor(private readonly options: SofaBatonClientOptions) {}
 
   public async activateActivity(activityId: number, keyCode = 0): Promise<void> {
-    const socket = await this.openSession();
-    try {
+    await this.withSession(async (socket) => {
       await writeSocket(socket, buildActivateFrame(activityId, keyCode));
-    } finally {
-      socket.destroy();
-    }
+    });
   }
 
   public async discoverActivities(): Promise<readonly SofaBatonActivity[]> {
-    const socket = await this.openSession();
-    try {
+    return await this.withSession(async (socket) => {
       return await collectActivities(socket, this.options.timeoutMs, this.options.debug);
+    });
+  }
+
+  private async withSession<T>(action: (socket: net.Socket) => Promise<T>): Promise<T> {
+    const previous = this.sessionQueue;
+    let release!: () => void;
+    this.sessionQueue = new Promise<void>((resolve) => {
+      release = resolve;
+    });
+
+    await previous;
+    let socket: net.Socket | undefined;
+    try {
+      socket = await this.openSession();
+      return await action(socket);
     } finally {
-      socket.destroy();
+      socket?.destroy();
+      release();
     }
   }
 
@@ -118,7 +132,7 @@ async function collectActivities(
       }
       for (const activity of parsedActivities) {
         activities.set(activity.id, activity);
-        debug?.(`Discovered X1S activity ${activity.id}: ${activity.name}`);
+        debug?.(`Discovered X1S activity ${activity.id}: ${activity.name}${activity.active === undefined ? '' : activity.active ? ' (active)' : ' (inactive)'}`);
       }
       resetQuietTimer();
     };

@@ -11,7 +11,8 @@ The X1S local flow uses:
 - UDP from Homebridge to the X1S hub;
 - a TCP callback from the X1S hub back to Homebridge;
 - activity catalog frames, including several catalog frames batched in the same TCP packet;
-- short command frames to send `POWER_ON` or `POWER_OFF` for an activity.
+- short command frames to send `POWER_ON` or `POWER_OFF` for an activity;
+- periodic activity catalog refreshes that read the hub active-activity flag.
 
 Because the hub connects back to Homebridge, the Homebridge host must be reachable from the X1S hub.
 
@@ -41,7 +42,9 @@ Le flux local X1S utilise :
 
 - UDP depuis Homebridge vers le hub X1S ;
 - une connexion TCP de retour du hub X1S vers Homebridge ;
-- une courte trame de commande pour activer une activite.
+- des trames de catalogue d'activites, avec prise en charge de plusieurs trames dans le meme paquet TCP ;
+- de courtes trames de commande pour envoyer `POWER_ON` ou `POWER_OFF` a une activite ;
+- des rafraichissements periodiques du catalogue pour lire le flag d'activite active du hub.
 
 Comme le hub se reconnecte vers Homebridge, l'hote Homebridge doit etre joignable depuis le hub X1S.
 

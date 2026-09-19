@@ -10,6 +10,7 @@ export interface NormalizedActivityConfig {
   readonly id: number;
   readonly name: string;
   readonly keyCode: number;
+  readonly active?: boolean;
 }
 
 export interface NormalizedPlatformConfig {

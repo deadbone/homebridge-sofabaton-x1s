@@ -5,6 +5,7 @@ import { ConfigValidationError, normalizeConfig } from './config/validation.js';
 import type { NormalizedActivityConfig, NormalizedPlatformConfig } from './config/types.js';
 import { SofaBatonX1SClient } from './sofabaton/client.js';
 import { KEY_POWER_OFF } from './sofabaton/protocol.js';
+import type { SofaBatonActivity } from './sofabaton/protocol.js';
 import { ACCESSORY_UUID_NAMESPACE, PLATFORM_NAME, PLUGIN_NAME } from './settings.js';
 import { PluginLogger } from './utils/logger.js';
 import { sanitizeHomeKitName } from './utils/security.js';
@@ -15,7 +16,11 @@ export class SofaBatonX1SPlatform implements DynamicPlatformPlugin {
   public readonly configData: NormalizedPlatformConfig;
   private readonly client?: SofaBatonX1SClient;
   private readonly activitySwitches = new Map<number, ActivitySwitchAccessory>();
-  private activeActivityId: number | undefined;
+  private activitiesById = new Map<number, NormalizedActivityConfig>();
+  private televisionAccessory?: X1STelevisionAccessory;
+  private pollTimer?: NodeJS.Timeout;
+  private pollInFlight = false;
+  public activeActivityId: number | undefined;
 
   public constructor(
     public readonly log: Logging,
@@ -44,6 +49,10 @@ export class SofaBatonX1SPlatform implements DynamicPlatformPlugin {
     this.api.on('didFinishLaunching', () => {
       void this.discoverAndRegisterAccessories();
     });
+
+    this.api.on('shutdown', () => {
+      this.stopActivityPolling();
+    });
   }
 
   public configureAccessory(accessory: PlatformAccessory): void {
@@ -53,6 +62,11 @@ export class SofaBatonX1SPlatform implements DynamicPlatformPlugin {
 
   public registerActivitySwitch(activityId: number, accessory: ActivitySwitchAccessory): void {
     this.activitySwitches.set(activityId, accessory);
+    accessory.updateState(this.activeActivityId);
+  }
+
+  public registerTelevisionAccessory(accessory: X1STelevisionAccessory): void {
+    this.televisionAccessory = accessory;
     accessory.updateState(this.activeActivityId);
   }
 
@@ -68,8 +82,7 @@ export class SofaBatonX1SPlatform implements DynamicPlatformPlugin {
     this.logger.info('[%s] Starting SofaBaton X1S activity id %s', activity.name, activity.id);
     try {
       await this.client.activateActivity(activity.id, activity.keyCode);
-      this.activeActivityId = activity.id;
-      this.updateActivitySwitchStates();
+      this.setActiveActivityId(activity.id, 'HomeKit command');
       this.logger.info('[%s] SofaBaton X1S command sent', activity.name);
     } catch (error) {
       this.logger.warn('[%s] SofaBaton X1S command failed: %s', activity.name, error instanceof Error ? error.message : String(error));
@@ -86,8 +99,7 @@ export class SofaBatonX1SPlatform implements DynamicPlatformPlugin {
     try {
       await this.client.activateActivity(activity.id, KEY_POWER_OFF);
       if (this.activeActivityId === activity.id) {
-        this.activeActivityId = undefined;
-        this.updateActivitySwitchStates();
+        this.setActiveActivityId(undefined, 'HomeKit off command');
       }
       this.logger.info('[%s] SofaBaton X1S off command sent', activity.name);
     } catch (error) {
@@ -102,13 +114,15 @@ export class SofaBatonX1SPlatform implements DynamicPlatformPlugin {
       return;
     }
     await this.deactivateActivity({ id, name: 'All Off', keyCode: KEY_POWER_OFF });
-    this.activeActivityId = undefined;
-    this.updateActivitySwitchStates();
+    this.setActiveActivityId(undefined, 'HomeKit all-off command');
   }
 
   private async discoverAndRegisterAccessories(): Promise<void> {
     const activities = await this.activitiesForRegistration();
+    this.activitiesById = new Map(activities.map((activity) => [activity.id, activity]));
     this.registerAccessories(activities);
+    this.syncActiveActivityFromActivities(activities, 'startup discovery');
+    this.startActivityPolling();
   }
 
   private async activitiesForRegistration(): Promise<readonly NormalizedActivityConfig[]> {
@@ -129,7 +143,8 @@ export class SofaBatonX1SPlatform implements DynamicPlatformPlugin {
         activities.set(activity.id, activity);
       }
       for (const activity of manualActivities) {
-        activities.set(activity.id, activity);
+        const discoveredActivity = activities.get(activity.id);
+        activities.set(activity.id, { ...activity, active: discoveredActivity?.active });
       }
 
       this.logger.info('Discovered %s SofaBaton X1S activities.', discoveredActivities.length);
@@ -174,10 +189,79 @@ export class SofaBatonX1SPlatform implements DynamicPlatformPlugin {
     }
   }
 
-  private updateActivitySwitchStates(): void {
+  private startActivityPolling(): void {
+    if (!this.client || this.pollTimer || this.configData.pollIntervalSeconds <= 0) {
+      return;
+    }
+
+    const intervalMs = this.configData.pollIntervalSeconds * 1000;
+    this.pollTimer = setInterval(() => {
+      void this.pollActivityState();
+    }, intervalMs);
+    this.pollTimer.unref?.();
+  }
+
+  private stopActivityPolling(): void {
+    if (this.pollTimer) {
+      clearInterval(this.pollTimer);
+      this.pollTimer = undefined;
+    }
+  }
+
+  private async pollActivityState(): Promise<void> {
+    if (!this.client || this.pollInFlight) {
+      return;
+    }
+
+    this.pollInFlight = true;
+    try {
+      const activities = await this.client.discoverActivities();
+      this.syncActiveActivityFromActivities(activities, 'X1S state polling');
+    } catch (error) {
+      this.logger.debug('SofaBaton X1S activity state polling failed: %s', error instanceof Error ? error.message : String(error));
+    } finally {
+      this.pollInFlight = false;
+    }
+  }
+
+  private syncActiveActivityFromActivities(activities: readonly SofaBatonActivity[], source: string): void {
+    const knownStates = activities.filter((activity) => activity.active !== undefined);
+    if (knownStates.length === 0) {
+      this.logger.debug('X1S %s did not include active activity state.', source);
+      return;
+    }
+
+    const activeActivity = knownStates.find((activity) => activity.active === true);
+    if (!activeActivity) {
+      this.setActiveActivityId(undefined, source);
+      return;
+    }
+
+    if (!this.activitiesById.has(activeActivity.id)) {
+      this.logger.warn('X1S %s reports active activity id %s, but it is not registered in HomeKit.', source, activeActivity.id);
+      this.setActiveActivityId(undefined, source);
+      return;
+    }
+
+    this.setActiveActivityId(activeActivity.id, source);
+  }
+
+  private setActiveActivityId(activityId: number | undefined, source: string): void {
+    if (this.activeActivityId === activityId) {
+      return;
+    }
+
+    this.activeActivityId = activityId;
+    this.updateActivityStates();
+    const activityName = activityId === undefined ? 'Powered off' : this.activitiesById.get(activityId)?.name ?? `Activity ${activityId}`;
+    this.logger.info('SofaBaton X1S active activity updated from %s: %s', source, activityName);
+  }
+
+  private updateActivityStates(): void {
     for (const accessory of this.activitySwitches.values()) {
       accessory.updateState(this.activeActivityId);
     }
+    this.televisionAccessory?.updateState(this.activeActivityId);
   }
 
   private registerOrRestoreTelevision(uuid: string, activities: readonly NormalizedActivityConfig[]): void {

@@ -97,11 +97,12 @@
         "maximum": 255
       },
       "pollIntervalSeconds": {
-        "title": "Polling Interval",
+        "title": "State Polling Interval",
         "type": "integer",
         "default": 60,
         "minimum": 10,
-        "maximum": 3600
+        "maximum": 3600,
+        "description": "Seconds between X1S activity-state refreshes. This lets HomeKit follow activity changes made from the physical remote or SofaBaton app."
       },
       "commandTimeoutSeconds": {
         "title": "Command Timeout",

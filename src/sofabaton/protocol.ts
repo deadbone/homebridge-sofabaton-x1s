@@ -12,6 +12,7 @@ export interface SofaBatonActivity {
   readonly id: number;
   readonly name: string;
   readonly keyCode: number;
+  readonly active?: boolean;
 }
 
 export function checksum(bytes: Uint8Array): number {
@@ -94,7 +95,8 @@ export function parseActivityCatalogFrame(frame: Buffer): SofaBatonActivity | un
     return undefined;
   }
 
-  return { id, name, keyCode: KEY_POWER_ON };
+  const active = frame.length > 35 ? frame[35] === 0x01 : undefined;
+  return active === undefined ? { id, name, keyCode: KEY_POWER_ON } : { id, name, keyCode: KEY_POWER_ON, active };
 }
 
 function frameStarts(data: Buffer): readonly number[] {

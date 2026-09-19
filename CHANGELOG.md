@@ -1,7 +1,10 @@
 # Changelog
 
-## Unreleased
+## 0.1.0-alpha.9
 
+- Refreshes HomeKit activity state from the X1S hub so physical remote or SofaBaton app changes update activity switches and the optional Television accessory.
+- Parses the X1S active-activity flag from activity catalog rows.
+- Serializes X1S local sessions to avoid callback-port conflicts between commands and polling.
 - Aligns README and wiki documentation with the current activity switch behavior, alpha installation path, and X1S discovery notes.
 
 ## 0.1.0-alpha.8

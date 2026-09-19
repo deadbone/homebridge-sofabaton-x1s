@@ -69,6 +69,7 @@ Use `both` only as the legacy alias of `tv`:
 - `hubId`: stable HomeKit identity seed. Do not change it after pairing.
 - `discovery`: reads the local X1S activity catalog automatically. Default: `true`.
 - `localListenPort`: local TCP port used for the X1S callback. Default: `8200`.
+- `pollIntervalSeconds`: seconds between current-activity state refreshes. Default: `60`.
 - `exposureMode`: `switches`, `tv`, or `both`. Default: `switches`. Activity switches are always exposed; `tv` and `both` also add a Television accessory.
 - `manualActivities`: optional fallback or overrides for discovered activities.
 - `manualActivities[].id`: X1S activity id.
@@ -148,6 +149,7 @@ Utilisez `both` seulement comme alias historique de `tv` :
 - `hubId` : base d'identite HomeKit stable. Ne le changez pas apres l'association.
 - `discovery` : lit automatiquement le catalogue d'activites X1S local. Defaut : `true`.
 - `localListenPort` : port TCP local utilise pour le callback X1S. Defaut : `8200`.
+- `pollIntervalSeconds` : delai en secondes entre deux rafraichissements de l'activite active. Defaut : `60`.
 - `exposureMode` : `switches`, `tv` ou `both`. Defaut : `switches`. Les interrupteurs d'activites sont toujours exposes ; `tv` et `both` ajoutent aussi un accessoire Television.
 - `manualActivities` : secours optionnel ou surcharge des activites detectees.
 - `manualActivities[].id` : identifiant d'activite X1S.

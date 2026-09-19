@@ -16,6 +16,7 @@ It currently provides:
 - automatic activity catalog discovery from the local X1S hub;
 - optional manual activity configuration as fallback or override;
 - local X1S `POWER_ON` / `POWER_OFF` command support;
+- periodic X1S activity-state refresh so HomeKit can follow remote/app changes;
 - plugin icon asset;
 - CI on Node.js `22.12.0` and `24.x`;
 - npm package archive verification.
@@ -70,7 +71,7 @@ Do not change `hubId` or activity ids after pairing unless you are ready for Hom
 - `tv`: persistent activity switches plus one Television accessory with activities as inputs.
 - `both`: same as `tv`, kept as a compatibility alias.
 
-Turning an activity switch ON starts that activity directly. The active activity switch stays ON until you turn it OFF or start another activity. HomeKit state is optimistic and kept by the plugin, so changes made only from the SofaBaton app or remote may not be reflected until another HomeKit command runs.
+Turning an activity switch ON starts that activity directly. The active activity switch stays ON until you turn it OFF, start another activity, or the next X1S state refresh sees that the remote/app changed the current activity.
 
 ## Configuration Fields
 
@@ -87,6 +88,7 @@ Turning an activity switch ON starts that activity directly. The active activity
 - `enableAllOff`: enables the all-off behavior. Disabled by default until the path is validated on real X1S hardware.
 - `allOffActivityId`: activity id used for all-off when enabled.
 - `localListenPort`: local TCP callback port used by the X1S protocol.
+- `pollIntervalSeconds`: interval used to refresh the current activity state from the X1S hub. Default: `60`.
 - `commandTimeoutSeconds`: timeout for activity command attempts.
 - `debugProtocol`: verbose protocol logging for troubleshooting.
 
@@ -165,6 +167,7 @@ Elle fournit actuellement :
 - la découverte automatique du catalogue d’activités depuis le hub X1S local ;
 - une configuration manuelle optionnelle comme secours ou surcharge ;
 - l’envoi local des commandes X1S `POWER_ON` / `POWER_OFF` ;
+- le rafraîchissement périodique de l’activité active pour suivre les changements faits depuis la télécommande ou l’app SofaBaton ;
 - une icône de plugin ;
 - une CI sur Node.js `22.12.0` et `24.x` ;
 - une vérification de l’archive npm réelle.
@@ -219,7 +222,7 @@ Ne modifiez pas `hubId` ni les identifiants d’activités après l’associatio
 - `tv` : interrupteurs persistants plus un accessoire Television avec les activités comme entrées.
 - `both` : identique à `tv`, conservé comme alias de compatibilité.
 
-Activer un interrupteur démarre directement l’activité. L’interrupteur de l’activité active reste allumé jusqu’à extinction ou démarrage d’une autre activité. L’état HomeKit est optimiste et conservé par le plugin ; les changements faits uniquement depuis l’app SofaBaton ou la télécommande peuvent donc ne pas être reflétés avant une nouvelle commande HomeKit.
+Activer un interrupteur démarre directement l’activité. L’interrupteur de l’activité active reste allumé jusqu’à extinction, démarrage d’une autre activité, ou détection d’un changement par le prochain rafraîchissement d’état X1S.
 
 ## Champs de configuration
 
@@ -236,6 +239,7 @@ Activer un interrupteur démarre directement l’activité. L’interrupteur de 
 - `enableAllOff` : active le comportement all-off. Désactivé par défaut tant que le chemin n’est pas validé sur une vraie X1S.
 - `allOffActivityId` : identifiant utilisé pour all-off quand l’option est activée.
 - `localListenPort` : port TCP local utilisé par le protocole X1S.
+- `pollIntervalSeconds` : intervalle de rafraîchissement de l’activité active depuis le hub X1S. Défaut : `60`.
 - `commandTimeoutSeconds` : délai maximal pour les commandes d’activité.
 - `debugProtocol` : logs de protocole détaillés pour diagnostic.
 

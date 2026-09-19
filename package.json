@@ -2,7 +2,7 @@
   "name": "homebridge-sofabaton-x1s",
   "displayName": "SofaBaton X1S",
   "type": "module",
-  "version": "0.1.0-alpha.8",
+  "version": "0.1.0-alpha.9",
   "private": false,
   "description": "Homebridge plugin for controlling SofaBaton X1S activities from Apple Home.",
   "author": "Thierry Lubrez",

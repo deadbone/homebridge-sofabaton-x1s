@@ -38,6 +38,20 @@ export class X1STelevisionAccessory {
       const input = this.inputService(activity);
       this.televisionService.addLinkedService(input);
     }
+
+    this.platform.registerTelevisionAccessory(this);
+    this.updateState(this.platform.activeActivityId);
+  }
+
+  public updateState(activeActivityId: number | undefined): void {
+    const { Characteristic } = this.platform.api.hap;
+    this.televisionService.updateCharacteristic(
+      Characteristic.Active,
+      activeActivityId === undefined ? Characteristic.Active.INACTIVE : Characteristic.Active.ACTIVE,
+    );
+    if (activeActivityId !== undefined) {
+      this.televisionService.updateCharacteristic(Characteristic.ActiveIdentifier, activeActivityId);
+    }
   }
 
   private async handleActiveIdentifier(value: CharacteristicValue): Promise<void> {

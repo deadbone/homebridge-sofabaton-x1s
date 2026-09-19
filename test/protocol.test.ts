@@ -34,6 +34,21 @@ describe('SofaBaton protocol frames', () => {
     expect(parseActivityCatalogFrame(frame)).toEqual({ id: 101, name: 'Films', keyCode: KEY_POWER_ON });
   });
 
+  it('parses the active activity flag from X1S catalog rows', () => {
+    expect(parseActivityCatalogFrame(x1sCatalogFrame(101, 'Films', true))).toEqual({
+      id: 101,
+      name: 'Films',
+      keyCode: KEY_POWER_ON,
+      active: true,
+    });
+    expect(parseActivityCatalogFrame(x1sCatalogFrame(102, 'Musique', false))).toEqual({
+      id: 102,
+      name: 'Musique',
+      keyCode: KEY_POWER_ON,
+      active: false,
+    });
+  });
+
   it('parses multiple activity catalog frames from one TCP packet', () => {
     const packet = Buffer.concat([
       catalogFrame(101, 'Films'),
@@ -57,6 +72,21 @@ function catalogFrame(id: number, name: string): Buffer {
   header[1] = 0x5A;
   header.writeUInt16BE(0xD53B, 2);
   header[11] = id;
+
+  const nameBytes = Buffer.from([...name].flatMap((char) => {
+    const code = char.charCodeAt(0);
+    return [code >> 8, code & 0xFF];
+  }));
+  return Buffer.concat([header, nameBytes, Buffer.from([0x00, 0x00, 0x00])]);
+}
+
+function x1sCatalogFrame(id: number, name: string, active: boolean): Buffer {
+  const header = Buffer.alloc(36);
+  header[0] = 0xA5;
+  header[1] = 0x5A;
+  header.writeUInt16BE(0xD53B, 2);
+  header[11] = id;
+  header[35] = active ? 0x01 : 0x00;
 
   const nameBytes = Buffer.from([...name].flatMap((char) => {
     const code = char.charCodeAt(0);

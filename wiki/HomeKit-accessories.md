@@ -29,7 +29,7 @@ When a switch turns ON:
 - that switch stays ON;
 - the previously active activity switch turns OFF.
 
-Turning the active switch OFF sends the activity POWER_OFF command.
+Turning the active switch OFF sends the activity POWER_OFF command. The plugin also polls the X1S hub for the active activity, so switches are updated when the physical remote or SofaBaton app changes activity or powers off.
 
 ## Stable identity
 
@@ -70,7 +70,7 @@ Quand un interrupteur passe a ON :
 - cet interrupteur reste allume ;
 - l'interrupteur de l'activite precedente s'eteint.
 
-Passer l'interrupteur actif a OFF envoie la commande POWER_OFF de l'activite.
+Passer l'interrupteur actif a OFF envoie la commande POWER_OFF de l'activite. Le plugin interroge aussi le hub X1S pour connaitre l'activite active ; les interrupteurs sont donc mis a jour quand la telecommande physique ou l'app SofaBaton change d'activite ou eteint le hub.
 
 ## Identite stable
 

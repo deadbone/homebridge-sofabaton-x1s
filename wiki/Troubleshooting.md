@@ -25,7 +25,7 @@ Check:
 - the Homebridge host can receive the X1S TCP callback;
 - no firewall blocks UDP to the hub or the local callback port.
 
-Enable `debugProtocol` temporarily and restart Homebridge.
+Enable `debugProtocol` temporarily and restart Homebridge. If HomeKit does not follow changes made from the physical remote, lower `pollIntervalSeconds` during testing and confirm that discovery returns activity rows in the logs.
 
 ## The wrong activity starts
 
@@ -72,7 +72,7 @@ Verifiez :
 - que l'hote Homebridge peut recevoir le callback TCP du X1S ;
 - qu'aucun pare-feu ne bloque l'UDP vers le hub ou le port local de callback.
 
-Activez temporairement `debugProtocol` puis redemarrez Homebridge.
+Activez temporairement `debugProtocol` puis redemarrez Homebridge. Si Maison ne suit pas les changements faits depuis la telecommande physique, baissez `pollIntervalSeconds` pendant le test et verifiez que la decouverte remonte bien des lignes d'activites dans les logs.
 
 ## La mauvaise activite demarre
 
