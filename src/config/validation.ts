@@ -1,3 +1,4 @@
+import { isIP } from 'node:net';
 import type { PlatformConfig } from 'homebridge';
 import type { ExposureMode, ManualActivityConfig, NormalizedPlatformConfig } from './types.js';
 import { DEFAULT_PLATFORM_NAME } from '../settings.js';
@@ -14,7 +15,7 @@ export class ConfigValidationError extends Error {
 
 export function normalizeConfig(config: PlatformConfig): NormalizedPlatformConfig {
   const name = nonEmptyString(config.name, 'name') ?? DEFAULT_PLATFORM_NAME;
-  const hubIp = optionalString(config.hubIp, 'hubIp');
+  const hubIp = optionalHubIp(config.hubIp);
   const hubId = nonEmptyString(config.hubId, 'hubId') ?? sanitizeId(hubIp ?? name);
   const exposureMode = exposure(config.exposureMode);
   const manualActivities = normalizeActivities(config.manualActivities);
@@ -91,6 +92,14 @@ function nonEmptyString(value: unknown, path: string): string | undefined {
     return undefined;
   }
   return requiredString(value, path);
+}
+
+function optionalHubIp(value: unknown): string | undefined {
+  const hubIp = optionalString(value, 'hubIp');
+  if (hubIp === undefined) {
+    return undefined;
+  }
+  return isIP(hubIp) === 4 ? hubIp : undefined;
 }
 
 function optionalString(value: unknown, path: string): string | undefined {

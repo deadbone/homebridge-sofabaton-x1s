@@ -62,6 +62,17 @@ describe('normalizeConfig', () => {
     expect(config.manualActivities).toEqual([]);
   });
 
+  it('ignores invalid hub IP addresses before network startup', () => {
+    const config = normalizeConfig({
+      platform: 'SofaBatonX1S',
+      name: 'X1S',
+      hubIp: 'test-value',
+    });
+
+    expect(config.hubIp).toBeUndefined();
+    expect(config.manualActivities).toEqual([]);
+  });
+
   it('rejects duplicate activity ids', () => {
     expect(() => normalizeConfig({
       platform: 'SofaBatonX1S',

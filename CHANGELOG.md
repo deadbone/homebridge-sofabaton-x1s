@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.1.2
+
+- Handles invalid `hubIp` values gracefully by ignoring them with a warning instead of attempting X1S network discovery during Homebridge startup.
+- Prevents orphaned callback wait promises when X1S discovery fails before the hub opens a TCP session.
+
 ## 0.1.1
 
 - Declares the `supports-hap` package keyword required by the Homebridge plugin registry for HAP/HomeKit accessories.

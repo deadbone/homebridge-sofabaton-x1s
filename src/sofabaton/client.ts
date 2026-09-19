@@ -70,6 +70,9 @@ export class SofaBatonX1SClient {
       const socket = await socketPromise;
       this.options.debug?.(`X1S hub connected from ${socket.remoteAddress ?? 'unknown address'}`);
       return socket;
+    } catch (error) {
+      void socketPromise.catch(() => undefined);
+      throw error;
     } finally {
       server.close();
     }

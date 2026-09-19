@@ -39,6 +39,9 @@ export class SofaBatonX1SPlatform implements DynamicPlatformPlugin {
     }
 
     this.logger = new PluginLogger(log, this.configData.debugProtocol);
+    if (hasIgnoredHubIp(config, this.configData)) {
+      this.logger.warn('Ignoring invalid SofaBaton X1S hubIp. Configure a valid IPv4 address before enabling discovery or sending commands.');
+    }
     if (this.configData.hubIp) {
       this.client = new SofaBatonX1SClient({
         hubIp: this.configData.hubIp,
@@ -308,6 +311,10 @@ export class SofaBatonX1SPlatform implements DynamicPlatformPlugin {
   private uuidFor(kind: string): string {
     return this.api.hap.uuid.generate(`${ACCESSORY_UUID_NAMESPACE}:${this.configData.hubId}:${kind}`);
   }
+}
+
+function hasIgnoredHubIp(config: PlatformConfig, normalizedConfig: NormalizedPlatformConfig): boolean {
+  return typeof config.hubIp === 'string' && config.hubIp.trim().length > 0 && normalizedConfig.hubIp === undefined;
 }
 
 function disabledConfig(config: PlatformConfig): NormalizedPlatformConfig {
