@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.1
+
+- Declares the `supports-hap` package keyword required by the Homebridge plugin registry for HAP/HomeKit accessories.
+
 ## 0.1.0
 
 - First stable release.
