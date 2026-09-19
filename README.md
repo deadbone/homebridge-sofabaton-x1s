@@ -2,11 +2,11 @@
 
 Homebridge plugin for controlling SofaBaton X1S activities from Apple Home.
 
-This plugin is intentionally limited to the **SofaBaton X1S**. It does not claim support for X1, X2, U-series remotes, or future SofaBaton models, because those devices are not part of the test scope.
+This plugin is intentionally limited to the **SofaBaton X1S**. It does not claim support for X1, X2, U-series remotes, or future SofaBaton models, because those devices are not part of the test scope. It does not claim Homebridge Verified status unless that status is granted by the Homebridge project.
 
 ## Status
 
-This is an alpha implementation.
+This is the first stable release line for the SofaBaton X1S-only Homebridge plugin.
 
 It currently provides:
 
@@ -33,10 +33,10 @@ Activity catalog discovery is enabled by default when `hubIp` is configured. Dis
 
 ## Installation
 
-Install the current alpha explicitly with the npm `alpha` dist-tag, either from Homebridge UI or from the terminal:
+Install from Homebridge UI, or from the terminal:
 
 ```sh
-npm install -g homebridge-sofabaton-x1s@alpha
+npm install -g homebridge-sofabaton-x1s
 ```
 
 For local development:
@@ -119,7 +119,7 @@ Configure the npm package trusted publisher for:
 - workflow file: `publish.yml`
 - environment: `npm`
 
-Manual alpha fallback:
+Manual prerelease fallback:
 
 ```sh
 npm login
@@ -153,11 +153,11 @@ See the GitHub Wiki for the setup tutorial and troubleshooting guide:
 
 Plugin Homebridge pour piloter les activités SofaBaton X1S depuis l’app Maison d’Apple.
 
-Ce plugin cible volontairement la **SofaBaton X1S uniquement**. Il ne promet pas de compatibilité avec les modèles X1, X2, la série U ou de futures télécommandes SofaBaton, car ces appareils ne font pas partie du périmètre de test.
+Ce plugin cible volontairement la **SofaBaton X1S uniquement**. Il ne promet pas de compatibilité avec les modèles X1, X2, la série U ou de futures télécommandes SofaBaton, car ces appareils ne font pas partie du périmètre de test. Il ne revendique pas le statut Homebridge Verified sauf si ce statut est accordé par le projet Homebridge.
 
 ## État
 
-Cette version est une alpha.
+Cette version est la première ligne stable du plugin Homebridge limité à la SofaBaton X1S.
 
 Elle fournit actuellement :
 
@@ -184,10 +184,10 @@ La découverte du catalogue d’activités est activée par défaut quand `hubIp
 
 ## Installation
 
-Installez explicitement l’alpha courante avec le dist-tag npm `alpha`, depuis Homebridge UI ou depuis le terminal :
+Installez depuis Homebridge UI ou depuis le terminal :
 
 ```sh
-npm install -g homebridge-sofabaton-x1s@alpha
+npm install -g homebridge-sofabaton-x1s
 ```
 
 Pour tester localement :
@@ -270,7 +270,7 @@ Configuration npm Trusted Publishing à prévoir :
 - workflow file : `publish.yml`
 - environment : `npm`
 
-Publication alpha manuelle de secours :
+Publication prerelease manuelle de secours :
 
 ```sh
 npm login

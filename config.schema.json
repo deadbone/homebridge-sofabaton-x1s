@@ -21,7 +21,7 @@
       "hubIp": {
         "title": "X1S Hub IP Address",
         "type": "string",
-        "description": "Static IP address of the SofaBaton X1S hub. Recommended for the first versions."
+        "description": "Static IP address of the SofaBaton X1S hub. A reserved DHCP address is recommended."
       },
       "hubId": {
         "title": "Stable Hub ID",

@@ -29,7 +29,7 @@ Enable `debugProtocol` temporarily and restart Homebridge. If HomeKit does not f
 
 ## The wrong activity starts
 
-For automatically discovered activities, first make sure you are running `homebridge-sofabaton-x1s@alpha` at version `0.1.0-alpha.8` or newer. Older alpha builds could mismatch names and IDs when several catalog frames arrived together.
+For automatically discovered activities, first make sure you are running the current stable `homebridge-sofabaton-x1s` package. Older prerelease builds before `0.1.0-alpha.8` could mismatch names and IDs when several catalog frames arrived together.
 
 If the activity was manually configured, fix the id in `manualActivities`, restart Homebridge, then test again.
 
@@ -76,7 +76,7 @@ Activez temporairement `debugProtocol` puis redemarrez Homebridge. Si Maison ne 
 
 ## La mauvaise activite demarre
 
-Pour les activites detectees automatiquement, verifiez d'abord que vous utilisez `homebridge-sofabaton-x1s@alpha` en version `0.1.0-alpha.8` ou plus recente. Les anciennes alphas pouvaient melanger les noms et les identifiants quand plusieurs trames de catalogue arrivaient ensemble.
+Pour les activites detectees automatiquement, verifiez d'abord que vous utilisez le paquet stable courant `homebridge-sofabaton-x1s`. Les anciennes prereleases avant `0.1.0-alpha.8` pouvaient melanger les noms et les identifiants quand plusieurs trames de catalogue arrivaient ensemble.
 
 Si l'activite est configuree manuellement, corrigez l'id dans `manualActivities`, redemarrez Homebridge, puis testez a nouveau.
 

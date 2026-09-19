@@ -27,6 +27,16 @@ describe('normalizeConfig', () => {
     expect(config.manualActivities).toEqual([{ id: 101, name: 'Watch TV', keyCode: KEY_POWER_ON }]);
   });
 
+  it('allows an incomplete Homebridge UI configuration to start without accessories', () => {
+    const config = normalizeConfig({
+      platform: 'SofaBatonX1S',
+      name: 'Living Room X1S',
+    });
+
+    expect(config.hubIp).toBeUndefined();
+    expect(config.manualActivities).toEqual([]);
+  });
+
   it('allows discovery-only configuration with an empty manual activity row', () => {
     const config = normalizeConfig({
       platform: 'SofaBatonX1S',

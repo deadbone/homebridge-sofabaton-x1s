@@ -4,7 +4,7 @@
 
 The plugin ships with `config.schema.json`, so Homebridge UI can render the configuration form.
 
-The alpha setup is intentionally explicit:
+The setup is intentionally explicit:
 
 - configure one X1S hub;
 - give it a stable `hubId`;
@@ -84,7 +84,7 @@ Use `both` only as the legacy alias of `tv`:
 
 Le plugin fournit `config.schema.json`, donc Homebridge UI peut afficher le formulaire de configuration.
 
-La configuration alpha est volontairement explicite :
+La configuration est volontairement explicite :
 
 - configurer un hub X1S ;
 - lui donner un `hubId` stable ;

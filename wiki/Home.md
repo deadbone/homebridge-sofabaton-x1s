@@ -29,7 +29,7 @@ The plugin is intentionally X1S-only. It is not a generic SofaBaton integration 
 - Plugin type: dynamic platform.
 - Module format: ESM.
 
-### Current alpha behavior
+### Current behavior
 
 The plugin reads the X1S activity catalog automatically from the local hub when `hubIp` is configured. It exposes one persistent HomeKit switch per activity by default, and can optionally add a Television accessory with activities as inputs. Discovery parses multiple catalog frames returned in the same TCP packet, so activity names stay matched to their hub IDs. Manual activity mapping remains available as a fallback or to override discovered names. The active activity state is refreshed periodically from the hub so HomeKit can follow changes made outside Homebridge.
 
@@ -62,6 +62,6 @@ Le plugin cible volontairement la X1S uniquement. Ce n'est pas une integration S
 - Type de plugin : plateforme dynamique.
 - Format de module : ESM.
 
-### Comportement actuel de l'alpha
+### Comportement actuel
 
 Le plugin lit automatiquement le catalogue d'activites X1S depuis le hub local quand `hubIp` est configure. Il expose par defaut un interrupteur HomeKit persistant par activite, et peut aussi ajouter un accessoire Television avec les activites comme entrees. La decouverte analyse plusieurs trames de catalogue arrivees dans le meme paquet TCP afin de garder les noms alignes avec leurs identifiants hub. La configuration manuelle reste disponible comme secours ou pour remplacer les noms detectes. L'activite active est rafraichie periodiquement depuis le hub afin que Maison suive les changements faits hors Homebridge.

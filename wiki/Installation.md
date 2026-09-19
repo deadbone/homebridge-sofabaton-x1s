@@ -2,12 +2,12 @@
 
 ## English
 
-Install the current alpha from Homebridge UI by selecting `homebridge-sofabaton-x1s@alpha`, or install it from the terminal:
+Install from Homebridge UI by selecting `homebridge-sofabaton-x1s`, or install it from the terminal:
 
 Command-line install:
 
 ```sh
-npm install -g homebridge-sofabaton-x1s@alpha
+npm install -g homebridge-sofabaton-x1s
 ```
 
 ## Requirements
@@ -43,12 +43,12 @@ homebridge -D -U ~/.homebridge-dev
 
 ## Francais
 
-Installez l'alpha courante depuis Homebridge UI en choisissant `homebridge-sofabaton-x1s@alpha`, ou depuis le terminal :
+Installez depuis Homebridge UI en choisissant `homebridge-sofabaton-x1s`, ou depuis le terminal :
 
 Installation en ligne de commande :
 
 ```sh
-npm install -g homebridge-sofabaton-x1s@alpha
+npm install -g homebridge-sofabaton-x1s
 ```
 
 ## Prerequis

@@ -32,8 +32,10 @@ export class SofaBatonX1SPlatform implements DynamicPlatformPlugin {
     } catch (error) {
       if (error instanceof ConfigValidationError) {
         log.error(error.message);
+      } else {
+        log.error('Invalid SofaBaton X1S configuration: %s', error instanceof Error ? error.message : String(error));
       }
-      throw error;
+      this.configData = disabledConfig(config);
     }
 
     this.logger = new PluginLogger(log, this.configData.debugProtocol);
@@ -47,7 +49,9 @@ export class SofaBatonX1SPlatform implements DynamicPlatformPlugin {
     }
 
     this.api.on('didFinishLaunching', () => {
-      void this.discoverAndRegisterAccessories();
+      void this.discoverAndRegisterAccessories().catch((error: unknown) => {
+        this.logger.warn('SofaBaton X1S startup failed: %s', error instanceof Error ? error.message : String(error));
+      });
     });
 
     this.api.on('shutdown', () => {
@@ -159,7 +163,7 @@ export class SofaBatonX1SPlatform implements DynamicPlatformPlugin {
     const expectedUUIDs = new Set<string>();
 
     if (activities.length === 0) {
-      this.logger.warn('No SofaBaton X1S activities available. Enable discovery with hubIp or add manualActivities.');
+      this.logger.warn('No SofaBaton X1S activities available. Configure hubIp for discovery or add manualActivities. No accessories will be published until the plugin is configured.');
       for (const [uuid, accessory] of this.accessories) {
         this.logger.info('Removing stale accessory from cache: %s', accessory.displayName);
         this.api.unregisterPlatformAccessories(PLUGIN_NAME, PLATFORM_NAME, [accessory]);
@@ -304,4 +308,22 @@ export class SofaBatonX1SPlatform implements DynamicPlatformPlugin {
   private uuidFor(kind: string): string {
     return this.api.hap.uuid.generate(`${ACCESSORY_UUID_NAMESPACE}:${this.configData.hubId}:${kind}`);
   }
+}
+
+function disabledConfig(config: PlatformConfig): NormalizedPlatformConfig {
+  const name = typeof config.name === 'string' && config.name.trim().length > 0 ? config.name.trim() : 'SofaBaton X1S';
+  return {
+    name,
+    hubId: 'sofabaton-x1s-disabled',
+    discovery: false,
+    localListenPort: 8200,
+    exposureMode: 'switches',
+    enableAllOff: false,
+    pollIntervalSeconds: 60,
+    commandTimeoutSeconds: 8,
+    retryIntervalSeconds: 30,
+    debugProtocol: false,
+    assumeX1S: false,
+    manualActivities: [],
+  };
 }

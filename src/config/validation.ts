@@ -19,10 +19,6 @@ export function normalizeConfig(config: PlatformConfig): NormalizedPlatformConfi
   const exposureMode = exposure(config.exposureMode);
   const manualActivities = normalizeActivities(config.manualActivities);
 
-  if (!hubIp && manualActivities.length === 0) {
-    throw new ConfigValidationError('SofaBaton X1S requires either hubIp or at least one manual activity.');
-  }
-
   return {
     name,
     hubIp,
