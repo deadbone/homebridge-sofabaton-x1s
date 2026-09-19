@@ -52,9 +52,23 @@ git tag: v0.1.0-alpha.1
 
 Prerelease tags publish with the npm `alpha` dist-tag and create prerelease GitHub Releases. Stable tags publish with the npm `latest` dist-tag and create latest GitHub Releases.
 
-## Manual fallback
+## Manual stable fallback
 
-Use only if Trusted Publishing is not available and publication was explicitly approved:
+Use only if Trusted Publishing is not available and a stable publication was explicitly approved:
+
+```sh
+npm login
+npm run lint
+npm run build
+npm test
+npm run verify:pack
+npm pack --dry-run
+npm publish
+```
+
+## Manual alpha fallback
+
+Use only for an approved prerelease publication:
 
 ```sh
 npm login
@@ -118,9 +132,23 @@ tag git : v0.1.0-alpha.1
 
 Les tags de prerelease publient avec le dist-tag npm `alpha` et creent des GitHub Releases en prerelease. Les tags stables publient avec le dist-tag npm `latest` et creent des GitHub Releases latest.
 
-## Secours manuel
+## Secours manuel stable
 
-A utiliser uniquement si Trusted Publishing n'est pas disponible et que la publication a ete explicitement approuvee :
+A utiliser uniquement si Trusted Publishing n'est pas disponible et qu'une publication stable a ete explicitement approuvee :
+
+```sh
+npm login
+npm run lint
+npm run build
+npm test
+npm run verify:pack
+npm pack --dry-run
+npm publish
+```
+
+## Secours manuel alpha
+
+A utiliser uniquement pour une publication de prerelease approuvee :
 
 ```sh
 npm login

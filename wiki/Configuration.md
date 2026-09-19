@@ -78,7 +78,9 @@ Use `both` only as the legacy alias of `tv`:
 - `enableAllOff`: enables all-off behavior. Default: `false`.
 - `allOffActivityId`: activity id used for all-off when enabled.
 - `commandTimeoutSeconds`: command timeout. Default: `8`.
+- `retryIntervalSeconds`: advanced retry interval accepted by the configuration. The current stable plugin does not run a dedicated automatic retry loop yet. Default: `30`.
 - `debugProtocol`: verbose protocol logs. Default: `false`.
+- `assumeX1S`: development fallback only. Do not enable it to claim support for other SofaBaton models.
 
 ## Francais
 
@@ -158,4 +160,6 @@ Utilisez `both` seulement comme alias historique de `tv` :
 - `enableAllOff` : active le comportement all-off. Defaut : `false`.
 - `allOffActivityId` : identifiant d'activite utilise pour all-off quand active.
 - `commandTimeoutSeconds` : delai maximal d'une commande. Defaut : `8`.
+- `retryIntervalSeconds` : intervalle de reessai avance accepte par la configuration. La version stable actuelle ne lance pas encore de boucle de reessai automatique dediee. Defaut : `30`.
 - `debugProtocol` : logs de protocole detailles. Defaut : `false`.
+- `assumeX1S` : option de developpement uniquement. Ne l'activez pas pour revendiquer la prise en charge d'autres modeles SofaBaton.

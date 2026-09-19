@@ -21,7 +21,7 @@ It currently provides:
 - CI on Node.js `22.12.0` and `24.x`;
 - npm package archive verification.
 
-Activity catalog discovery is enabled by default when `hubIp` is configured. Discovery parses all catalog frames returned by the hub, and `manualActivities` remains available as a fallback or to override discovered names.
+Activity catalog discovery is enabled by default when `hubIp` is configured. Discovery parses all catalog frames returned by the hub, including several activity rows received in the same TCP packet. `manualActivities` remains available as a fallback or to override discovered names.
 
 ## Requirements
 
@@ -43,6 +43,7 @@ For local development:
 
 ```sh
 cd /Users/thierrylubrez/Developpements/homebridge-sofabaton-x1s
+npm install
 npm run build
 npm link
 homebridge -D -U ~/.homebridge-dev
@@ -89,8 +90,10 @@ Turning an activity switch ON starts that activity directly. The active activity
 - `allOffActivityId`: activity id used for all-off when enabled.
 - `localListenPort`: local TCP callback port used by the X1S protocol.
 - `pollIntervalSeconds`: interval used to refresh the current activity state from the X1S hub. Default: `60`.
-- `commandTimeoutSeconds`: timeout for activity command attempts.
-- `debugProtocol`: verbose protocol logging for troubleshooting.
+- `commandTimeoutSeconds`: timeout for activity command attempts. Default: `8`.
+- `retryIntervalSeconds`: advanced retry interval accepted by the configuration. The current stable plugin does not run a dedicated automatic retry loop yet.
+- `debugProtocol`: verbose protocol logging for troubleshooting. Default: `false`.
+- `assumeX1S`: development fallback only. Do not enable it to claim support for other SofaBaton models.
 
 ## Validation Commands
 
@@ -119,7 +122,7 @@ Configure the npm package trusted publisher for:
 - workflow file: `publish.yml`
 - environment: `npm`
 
-Manual prerelease fallback:
+Manual stable fallback:
 
 ```sh
 npm login
@@ -128,7 +131,7 @@ npm run build
 npm test
 npm run verify:pack
 npm pack --dry-run
-npm publish --tag alpha
+npm publish
 ```
 
 ## Security And Privacy
@@ -172,7 +175,7 @@ Elle fournit actuellement :
 - une CI sur Node.js `22.12.0` et `24.x` ;
 - une vérification de l’archive npm réelle.
 
-La découverte du catalogue d’activités est activée par défaut quand `hubIp` est configuré. La découverte analyse toutes les trames de catalogue renvoyées par le hub, et `manualActivities` reste disponible comme secours ou pour remplacer les noms détectés.
+La découverte du catalogue d’activités est activée par défaut quand `hubIp` est configuré. Elle analyse toutes les trames de catalogue renvoyées par le hub, y compris plusieurs activités reçues dans le même paquet TCP. `manualActivities` reste disponible comme secours ou pour remplacer les noms détectés.
 
 ## Prérequis
 
@@ -194,6 +197,7 @@ Pour tester localement :
 
 ```sh
 cd /Users/thierrylubrez/Developpements/homebridge-sofabaton-x1s
+npm install
 npm run build
 npm link
 homebridge -D -U ~/.homebridge-dev
@@ -240,8 +244,10 @@ Activer un interrupteur démarre directement l’activité. L’interrupteur de 
 - `allOffActivityId` : identifiant utilisé pour all-off quand l’option est activée.
 - `localListenPort` : port TCP local utilisé par le protocole X1S.
 - `pollIntervalSeconds` : intervalle de rafraîchissement de l’activité active depuis le hub X1S. Défaut : `60`.
-- `commandTimeoutSeconds` : délai maximal pour les commandes d’activité.
-- `debugProtocol` : logs de protocole détaillés pour diagnostic.
+- `commandTimeoutSeconds` : délai maximal pour les commandes d’activité. Défaut : `8`.
+- `retryIntervalSeconds` : intervalle de réessai avancé accepté par la configuration. La version stable actuelle ne lance pas encore de boucle de réessai automatique dédiée.
+- `debugProtocol` : logs de protocole détaillés pour diagnostic. Défaut : `false`.
+- `assumeX1S` : option de développement uniquement. Ne l’activez pas pour revendiquer la prise en charge d’autres modèles SofaBaton.
 
 ## Commandes de validation
 
@@ -270,7 +276,7 @@ Configuration npm Trusted Publishing à prévoir :
 - workflow file : `publish.yml`
 - environment : `npm`
 
-Publication prerelease manuelle de secours :
+Publication stable manuelle de secours :
 
 ```sh
 npm login
@@ -279,7 +285,7 @@ npm run build
 npm test
 npm run verify:pack
 npm pack --dry-run
-npm publish --tag alpha
+npm publish
 ```
 
 ## Sécurité et confidentialité
