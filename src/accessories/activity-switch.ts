@@ -13,8 +13,7 @@ export class ActivitySwitchAccessory {
     const { Service, Characteristic } = this.platform.api.hap;
     this.service = this.accessory.getService(Service.Switch) ?? this.accessory.addService(Service.Switch);
     this.service
-      .setCharacteristic(Characteristic.Name, activity.name)
-      .setCharacteristic(Characteristic.ConfiguredName, activity.name);
+      .setCharacteristic(Characteristic.Name, activity.name);
     this.service.getCharacteristic(Characteristic.On)
       .onSet(this.handleSet.bind(this))
       .updateValue(this.platform.isActivityActive(activity.id));

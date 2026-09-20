@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.4
+
+- Stops setting the Television-only `ConfiguredName` characteristic on activity Switch services to avoid Homebridge warnings.
+
 ## 0.1.3
 
 - Ignores blank Homebridge UI manual activity rows even when the UI sends the default activation key code.
