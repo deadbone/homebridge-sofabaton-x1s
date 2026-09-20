@@ -56,7 +56,10 @@ describe('normalizeConfig', () => {
       name: 'Living Room X1S',
       hubIp: '192.168.1.50',
       discovery: true,
-      manualActivities: [{ id: null, name: '', keyCode: 0 }],
+      manualActivities: [
+        { id: null, name: '', keyCode: 0 },
+        { keyCode: KEY_POWER_ON },
+      ],
     });
 
     expect(config.manualActivities).toEqual([]);

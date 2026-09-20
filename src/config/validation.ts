@@ -148,7 +148,7 @@ function requiredInteger(value: unknown, min: number, max: number, path: string)
 }
 
 function isEmptyActivity(value: Record<string, unknown>): boolean {
-  return isBlank(value.id) && isBlank(value.name) && (isBlank(value.keyCode) || value.keyCode === 0);
+  return isBlank(value.id) && isBlank(value.name);
 }
 
 function isBlank(value: unknown): boolean {

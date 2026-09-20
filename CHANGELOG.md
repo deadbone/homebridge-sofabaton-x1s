@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.3
+
+- Ignores blank Homebridge UI manual activity rows even when the UI sends the default activation key code.
+
 ## 0.1.2
 
 - Handles invalid `hubIp` values gracefully by ignoring them with a warning instead of attempting X1S network discovery during Homebridge startup.
