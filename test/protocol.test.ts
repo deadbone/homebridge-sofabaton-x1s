@@ -3,9 +3,11 @@ import {
   buildActivateFrame,
   buildActivityCatalogRequestFrame,
   buildAuthRequestFrame,
+  OP_ACK_READY,
   KEY_POWER_ON,
   buildCallMeFrame,
   checksum,
+  splitFrames,
   parseActivityCatalogFrame,
   parseActivityCatalogFrames,
 } from '../src/sofabaton/protocol.js';
@@ -31,7 +33,7 @@ describe('SofaBaton protocol frames', () => {
   it('parses an activity catalog response frame', () => {
     const frame = catalogFrame(101, 'Films');
 
-    expect(parseActivityCatalogFrame(frame)).toEqual({ id: 101, name: 'Films', keyCode: KEY_POWER_ON });
+    expect(parseActivityCatalogFrame(frame)).toEqual({ id: 101, name: 'Films', keyCode: KEY_POWER_ON, active: false });
   });
 
   it('parses the active activity flag from X1S catalog rows', () => {
@@ -58,39 +60,48 @@ describe('SofaBaton protocol frames', () => {
     ]);
 
     expect(parseActivityCatalogFrames(packet)).toEqual([
-      { id: 101, name: 'Films', keyCode: KEY_POWER_ON },
-      { id: 102, name: 'Musique', keyCode: KEY_POWER_ON },
-      { id: 103, name: 'Xbox', keyCode: KEY_POWER_ON },
-      { id: 104, name: 'switch 2', keyCode: KEY_POWER_ON },
+      { id: 101, name: 'Films', keyCode: KEY_POWER_ON, active: false },
+      { id: 102, name: 'Musique', keyCode: KEY_POWER_ON, active: false },
+      { id: 103, name: 'Xbox', keyCode: KEY_POWER_ON, active: false },
+      { id: 104, name: 'switch 2', keyCode: KEY_POWER_ON, active: false },
     ]);
+  });
+
+  it('splits complete frames using the opcode high-byte length invariant', () => {
+    const packet = Buffer.concat([
+      frame(0x0001),
+      frame(OP_ACK_READY, Buffer.from([0x00])),
+      x1sCatalogFrame(101, 'Films', true, 1, 1),
+    ]);
+
+    expect(splitFrames(packet).map((item) => item.opcode)).toEqual([0x0001, OP_ACK_READY, 0xD53B]);
   });
 });
 
 function catalogFrame(id: number, name: string): Buffer {
-  const header = Buffer.alloc(12);
-  header[0] = 0xA5;
-  header[1] = 0x5A;
-  header.writeUInt16BE(0xD53B, 2);
-  header[11] = id;
-
-  const nameBytes = Buffer.from([...name].flatMap((char) => {
-    const code = char.charCodeAt(0);
-    return [code >> 8, code & 0xFF];
-  }));
-  return Buffer.concat([header, nameBytes, Buffer.from([0x00, 0x00, 0x00])]);
+  return x1sCatalogFrame(id, name, false);
 }
 
-function x1sCatalogFrame(id: number, name: string, active: boolean): Buffer {
-  const header = Buffer.alloc(36);
-  header[0] = 0xA5;
-  header[1] = 0x5A;
-  header.writeUInt16BE(0xD53B, 2);
-  header[11] = id;
-  header[35] = active ? 0x01 : 0x00;
-
+function x1sCatalogFrame(id: number, name: string, active: boolean, row = 1, total = 1): Buffer {
+  const payload = Buffer.alloc(0xD5);
+  payload[0] = row;
+  payload[3] = total;
+  payload.writeUInt16BE(id, 6);
+  payload[31] = active ? 0x01 : 0x00;
   const nameBytes = Buffer.from([...name].flatMap((char) => {
     const code = char.charCodeAt(0);
     return [code >> 8, code & 0xFF];
   }));
-  return Buffer.concat([header, nameBytes, Buffer.from([0x00, 0x00, 0x00])]);
+  nameBytes.copy(payload, 32, 0, Math.min(nameBytes.length, 60));
+  return frame(0xD53B, payload);
+}
+
+function frame(opcode: number, payload = Buffer.alloc(opcode >> 8)): Buffer {
+  const output = Buffer.alloc(2 + 2 + payload.length + 1);
+  output[0] = 0xA5;
+  output[1] = 0x5A;
+  output.writeUInt16BE(opcode, 2);
+  payload.copy(output, 4);
+  output[output.length - 1] = checksum(output.subarray(0, output.length - 1));
+  return output;
 }

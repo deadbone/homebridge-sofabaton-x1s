@@ -18,8 +18,6 @@ export class SofaBatonX1SPlatform implements DynamicPlatformPlugin {
   private readonly activitySwitches = new Map<number, ActivitySwitchAccessory>();
   private activitiesById = new Map<number, NormalizedActivityConfig>();
   private televisionAccessory?: X1STelevisionAccessory;
-  private pollTimer?: NodeJS.Timeout;
-  private pollInFlight = false;
   public activeActivityId: number | undefined;
 
   public constructor(
@@ -47,7 +45,20 @@ export class SofaBatonX1SPlatform implements DynamicPlatformPlugin {
         hubIp: this.configData.hubIp,
         listenPort: this.configData.localListenPort,
         timeoutMs: this.configData.commandTimeoutSeconds * 1000,
+        reconnectBaseMs: this.configData.retryIntervalSeconds * 1000,
         debug: (message) => this.logger.debug(message),
+        onActivities: (activities, source) => {
+          if (this.activitiesById.size > 0) {
+            this.syncActiveActivityFromActivities(activities, source);
+          }
+        },
+        onConnectionChange: (connected) => {
+          if (connected) {
+            this.logger.debug('SofaBaton X1S hub TCP connection established.');
+          } else {
+            this.logger.debug('SofaBaton X1S hub TCP connection closed.');
+          }
+        },
       });
     }
 
@@ -58,7 +69,7 @@ export class SofaBatonX1SPlatform implements DynamicPlatformPlugin {
     });
 
     this.api.on('shutdown', () => {
-      this.stopActivityPolling();
+      this.client?.stop();
     });
   }
 
@@ -129,7 +140,7 @@ export class SofaBatonX1SPlatform implements DynamicPlatformPlugin {
     this.activitiesById = new Map(activities.map((activity) => [activity.id, activity]));
     this.registerAccessories(activities);
     this.syncActiveActivityFromActivities(activities, 'startup discovery');
-    this.startActivityPolling();
+    this.startEventConnection();
   }
 
   private async activitiesForRegistration(): Promise<readonly NormalizedActivityConfig[]> {
@@ -139,7 +150,7 @@ export class SofaBatonX1SPlatform implements DynamicPlatformPlugin {
     }
 
     try {
-      const discoveredActivities = await this.client.discoverActivities();
+      const discoveredActivities = await this.client.start();
       if (discoveredActivities.length === 0) {
         this.logger.warn('X1S activity discovery returned no activities. Falling back to manualActivities.');
         return manualActivities;
@@ -196,39 +207,18 @@ export class SofaBatonX1SPlatform implements DynamicPlatformPlugin {
     }
   }
 
-  private startActivityPolling(): void {
-    if (!this.client || this.pollTimer || this.configData.pollIntervalSeconds <= 0) {
+  private startEventConnection(): void {
+    if (!this.client) {
       return;
     }
 
-    const intervalMs = this.configData.pollIntervalSeconds * 1000;
-    this.pollTimer = setInterval(() => {
-      void this.pollActivityState();
-    }, intervalMs);
-    this.pollTimer.unref?.();
-  }
-
-  private stopActivityPolling(): void {
-    if (this.pollTimer) {
-      clearInterval(this.pollTimer);
-      this.pollTimer = undefined;
-    }
-  }
-
-  private async pollActivityState(): Promise<void> {
-    if (!this.client || this.pollInFlight) {
-      return;
-    }
-
-    this.pollInFlight = true;
-    try {
-      const activities = await this.client.discoverActivities();
-      this.syncActiveActivityFromActivities(activities, 'X1S state polling');
-    } catch (error) {
-      this.logger.debug('SofaBaton X1S activity state polling failed: %s', error instanceof Error ? error.message : String(error));
-    } finally {
-      this.pollInFlight = false;
-    }
+    void this.client.start()
+      .then((activities) => {
+        this.syncActiveActivityFromActivities(activities, 'event connection startup');
+      })
+      .catch((error: unknown) => {
+        this.logger.warn('SofaBaton X1S event connection failed: %s', error instanceof Error ? error.message : String(error));
+      });
   }
 
   private syncActiveActivityFromActivities(activities: readonly SofaBatonActivity[], source: string): void {
@@ -326,7 +316,6 @@ function disabledConfig(config: PlatformConfig): NormalizedPlatformConfig {
     localListenPort: 8200,
     exposureMode: 'switches',
     enableAllOff: false,
-    pollIntervalSeconds: 60,
     commandTimeoutSeconds: 8,
     retryIntervalSeconds: 30,
     debugProtocol: false,

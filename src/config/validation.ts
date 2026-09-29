@@ -29,7 +29,6 @@ export function normalizeConfig(config: PlatformConfig): NormalizedPlatformConfi
     exposureMode,
     enableAllOff: optionalBoolean(config.enableAllOff, false),
     allOffActivityId: optionalInteger(config.allOffActivityId, 1, 255, 'allOffActivityId'),
-    pollIntervalSeconds: boundedInteger(config.pollIntervalSeconds, 60, 10, 3600, 'pollIntervalSeconds'),
     commandTimeoutSeconds: boundedInteger(config.commandTimeoutSeconds, 8, 1, 120, 'commandTimeoutSeconds'),
     retryIntervalSeconds: boundedInteger(config.retryIntervalSeconds, 30, 5, 3600, 'retryIntervalSeconds'),
     debugProtocol: optionalBoolean(config.debugProtocol, false),

@@ -2,11 +2,14 @@ import dgram from 'node:dgram';
 import net from 'node:net';
 import os from 'node:os';
 import {
+  OP_ACK_READY,
+  OP_RES_ACTIVITY,
   buildActivateFrame,
   buildActivityCatalogRequestFrame,
   buildAuthRequestFrame,
   buildCallMeFrame,
-  parseActivityCatalogFrames,
+  parseActivityCatalogFrame,
+  splitFrames,
 } from './protocol.js';
 import type { SofaBatonActivity } from './protocol.js';
 
@@ -14,48 +17,110 @@ export interface SofaBatonClientOptions {
   readonly hubIp: string;
   readonly listenPort: number;
   readonly timeoutMs: number;
+  readonly reconnectBaseMs: number;
+  readonly hubUdpPort?: number;
   readonly debug?: (message: string) => void;
+  readonly onActivities?: (activities: readonly SofaBatonActivity[], source: string) => void;
+  readonly onConnectionChange?: (connected: boolean) => void;
+}
+
+interface PendingActivityRequest {
+  readonly resolve: (activities: readonly SofaBatonActivity[]) => void;
+  readonly reject: (error: Error) => void;
+  readonly activities: Map<number, SofaBatonActivity>;
+  readonly source: string;
+  quietTimer?: NodeJS.Timeout;
+  timeoutTimer?: NodeJS.Timeout;
+  expectedRows?: number;
 }
 
 export class SofaBatonX1SClient {
-  private sessionQueue: Promise<void> = Promise.resolve();
+  private server?: net.Server;
+  private socket?: net.Socket;
+  private starting?: Promise<readonly SofaBatonActivity[]>;
+  private stopped = true;
+  private connected = false;
+  private reconnectTimer?: NodeJS.Timeout;
+  private reconnectAttempt = 0;
+  private commandQueue: Promise<void> = Promise.resolve();
+  private receiveBuffer = Buffer.alloc(0);
+  private pendingActivityRequest?: PendingActivityRequest;
+  private latestActivities: readonly SofaBatonActivity[] = [];
 
   public constructor(private readonly options: SofaBatonClientOptions) {}
 
+  public async start(): Promise<readonly SofaBatonActivity[]> {
+    if (this.starting) {
+      return await this.starting;
+    }
+    if (!this.stopped && this.socket && !this.socket.destroyed) {
+      return this.latestActivities;
+    }
+
+    this.stopped = false;
+    this.starting = this.connectAndSynchronize('initial synchronization').finally(() => {
+      this.starting = undefined;
+    });
+    return await this.starting;
+  }
+
+  public stop(): void {
+    this.stopped = true;
+    this.clearReconnectTimer();
+    this.rejectPendingActivityRequest(new Error('SofaBaton X1S client stopped.'));
+    this.socket?.destroy();
+    this.socket = undefined;
+    this.closeServer();
+    this.setConnected(false);
+  }
+
   public async activateActivity(activityId: number, keyCode = 0): Promise<void> {
-    await this.withSession(async (socket) => {
+    await this.ensureStarted();
+    await this.enqueueCommand(async () => {
+      const socket = this.socket;
+      if (!socket || socket.destroyed) {
+        throw new Error('SofaBaton X1S hub is not connected.');
+      }
       await writeSocket(socket, buildActivateFrame(activityId, keyCode));
     });
   }
 
-  public async discoverActivities(): Promise<readonly SofaBatonActivity[]> {
-    return await this.withSession(async (socket) => {
-      return await collectActivities(socket, this.options.timeoutMs, this.options.debug);
-    });
+  public async synchronizeActivities(source = 'manual synchronization'): Promise<readonly SofaBatonActivity[]> {
+    await this.ensureStarted();
+    return await this.requestActivities(source);
   }
 
-  private async withSession<T>(action: (socket: net.Socket) => Promise<T>): Promise<T> {
-    const previous = this.sessionQueue;
-    let release!: () => void;
-    this.sessionQueue = new Promise<void>((resolve) => {
-      release = resolve;
-    });
-
-    await previous;
-    let socket: net.Socket | undefined;
-    try {
-      socket = await this.openSession();
-      return await action(socket);
-    } finally {
-      socket?.destroy();
-      release();
+  private async ensureStarted(): Promise<void> {
+    if (this.stopped) {
+      await this.start();
+      return;
+    }
+    if (this.starting) {
+      await this.starting;
     }
   }
 
-  private async openSession(): Promise<net.Socket> {
+  private async connectAndSynchronize(source: string): Promise<readonly SofaBatonActivity[]> {
+    this.clearReconnectTimer();
+    const socket = await this.openPersistentSession();
+    if (this.stopped) {
+      socket.destroy();
+      return [];
+    }
+
+    this.installSocket(socket);
+    await writeSocket(socket, buildAuthRequestFrame());
+    await delay(250);
+    const activities = await this.requestActivities(source);
+    this.reconnectAttempt = 0;
+    return activities;
+  }
+
+  private async openPersistentSession(): Promise<net.Socket> {
+    this.closeServer();
     const localIp = getLocalIpFor(this.options.hubIp);
     const server = net.createServer();
-    const socketPromise = waitForConnection(server, this.options.timeoutMs);
+    this.server = server;
 
     await new Promise<void>((resolve, reject) => {
       server.once('error', reject);
@@ -65,85 +130,260 @@ export class SofaBatonX1SClient {
       });
     });
 
+    const address = server.address();
+    const listenPort = typeof address === 'object' && address ? address.port : this.options.listenPort;
+    const socketPromise = waitForConnection(server, this.options.timeoutMs);
     try {
-      await sendCallMe(this.options.hubIp, buildCallMeFrame(localIp, this.options.listenPort), this.options.timeoutMs);
+      await sendCallMe(
+        this.options.hubIp,
+        this.options.hubUdpPort ?? 8102,
+        buildCallMeFrame(localIp, listenPort),
+        this.options.timeoutMs,
+      );
+
       const socket = await socketPromise;
-      this.options.debug?.(`X1S hub connected from ${socket.remoteAddress ?? 'unknown address'}`);
+      this.options.debug?.(`X1S persistent hub connection from ${socket.remoteAddress ?? 'unknown address'}`);
       return socket;
     } catch (error) {
       void socketPromise.catch(() => undefined);
+      this.closeServer();
       throw error;
-    } finally {
-      server.close();
     }
   }
-}
 
-async function collectActivities(
-  socket: net.Socket,
-  timeoutMs: number,
-  debug?: (message: string) => void,
-): Promise<readonly SofaBatonActivity[]> {
-  const activities = new Map<number, SofaBatonActivity>();
+  private installSocket(socket: net.Socket): void {
+    this.socket?.destroy();
+    this.socket = socket;
+    this.receiveBuffer = Buffer.alloc(0);
+    socket.setNoDelay(true);
+    socket.setKeepAlive(true);
+    socket.on('data', (data) => {
+      this.handleData(data);
+    });
+    socket.once('close', () => {
+      this.handleDisconnect('closed');
+    });
+    socket.once('error', (error) => {
+      this.options.debug?.(`X1S TCP socket error: ${error.message}`);
+    });
+    this.setConnected(true);
+  }
 
-  await writeSocket(socket, buildAuthRequestFrame());
-  await delay(250);
+  private handleData(data: Buffer): void {
+    this.receiveBuffer = Buffer.concat([this.receiveBuffer, data]);
+    const frames = splitFrames(this.receiveBuffer);
+    if (frames.length === 0) {
+      return;
+    }
 
-  return await new Promise((resolve, reject) => {
-    let settled = false;
-    let quietTimer: NodeJS.Timeout | undefined;
-    const totalTimer = setTimeout(() => finish(), timeoutMs);
+    this.receiveBuffer = this.receiveBuffer.subarray(frames[frames.length - 1]?.end ?? 0);
 
-    const resetQuietTimer = (): void => {
-      if (quietTimer) {
-        clearTimeout(quietTimer);
+    for (const frame of frames) {
+      if (frame.opcode === OP_ACK_READY) {
+        this.options.debug?.('X1S ACK_READY received; refreshing activity state once.');
+        void this.requestActivities('X1S ACK_READY event').catch((error: unknown) => {
+          this.options.debug?.(`X1S ACK_READY activity refresh failed: ${error instanceof Error ? error.message : String(error)}`);
+        });
+        continue;
       }
-      quietTimer = setTimeout(() => finish(), Math.min(1500, timeoutMs));
-    };
 
-    const finish = (): void => {
-      if (settled) {
-        return;
+      if (frame.opcode === OP_RES_ACTIVITY) {
+        this.handleActivityFrame(frame.raw, frame.payload);
       }
-      settled = true;
-      clearTimeout(totalTimer);
-      if (quietTimer) {
-        clearTimeout(quietTimer);
-      }
-      socket.off('data', onData);
-      socket.off('error', onError);
-      resolve([...activities.values()].sort((left, right) => left.id - right.id));
-    };
+    }
+  }
 
-    const onError = (error: Error): void => {
-      if (settled) {
-        return;
-      }
-      settled = true;
-      clearTimeout(totalTimer);
-      if (quietTimer) {
-        clearTimeout(quietTimer);
-      }
-      reject(error);
-    };
+  private handleActivityFrame(raw: Buffer, payload: Buffer): void {
+    const pending = this.pendingActivityRequest;
+    if (!pending) {
+      this.options.debug?.(`Ignoring unsolicited X1S activity row: ${raw.toString('hex')}`);
+      return;
+    }
 
-    const onData = (data: Buffer): void => {
-      const parsedActivities = parseActivityCatalogFrames(data);
-      if (parsedActivities.length === 0) {
-        debug?.(`Ignoring X1S catalog response frame: ${data.toString('hex')}`);
-        return;
-      }
-      for (const activity of parsedActivities) {
-        activities.set(activity.id, activity);
-        debug?.(`Discovered X1S activity ${activity.id}: ${activity.name}${activity.active === undefined ? '' : activity.active ? ' (active)' : ' (inactive)'}`);
-      }
-      resetQuietTimer();
-    };
+    const activity = parseActivityCatalogFrame(raw);
+    if (!activity) {
+      this.options.debug?.(`Ignoring unparsable X1S activity row: ${raw.toString('hex')}`);
+      return;
+    }
 
-    socket.on('data', onData);
-    socket.once('error', onError);
-    writeSocket(socket, buildActivityCatalogRequestFrame()).catch(onError);
-  });
+    pending.activities.set(activity.id, activity);
+    if (payload.length >= 4 && payload[3] > 0) {
+      pending.expectedRows = payload[3];
+    }
+    this.options.debug?.(`X1S activity row ${activity.id}: ${activity.name}${activity.active === undefined ? '' : activity.active ? ' (active)' : ' (inactive)'}`);
+
+    if (pending.expectedRows !== undefined && pending.activities.size >= pending.expectedRows) {
+      this.finishPendingActivityRequest();
+      return;
+    }
+
+    this.resetPendingQuietTimer();
+  }
+
+  private async requestActivities(source: string): Promise<readonly SofaBatonActivity[]> {
+    const socket = this.socket;
+    if (!socket || socket.destroyed) {
+      throw new Error('SofaBaton X1S hub is not connected.');
+    }
+
+    if (this.pendingActivityRequest) {
+      this.options.debug?.(`Joining in-flight X1S activity synchronization from ${this.pendingActivityRequest.source}.`);
+      return await new Promise((resolve, reject) => {
+        const previousResolve = this.pendingActivityRequest?.resolve;
+        const previousReject = this.pendingActivityRequest?.reject;
+        if (!this.pendingActivityRequest || !previousResolve || !previousReject) {
+          reject(new Error('SofaBaton X1S activity synchronization disappeared.'));
+          return;
+        }
+        this.pendingActivityRequest = {
+          ...this.pendingActivityRequest,
+          resolve: (activities) => {
+            previousResolve(activities);
+            resolve(activities);
+          },
+          reject: (error) => {
+            previousReject(error);
+            reject(error);
+          },
+        };
+      });
+    }
+
+    return await new Promise((resolve, reject) => {
+      this.pendingActivityRequest = {
+        resolve,
+        reject,
+        activities: new Map(),
+        source,
+      };
+      this.pendingActivityRequest.timeoutTimer = setTimeout(() => {
+        this.rejectPendingActivityRequest(new Error('Timed out waiting for SofaBaton X1S activity rows.'));
+      }, this.options.timeoutMs);
+      this.resetPendingQuietTimer();
+      this.options.debug?.(`Requesting X1S activities: ${source}`);
+      writeSocket(socket, buildActivityCatalogRequestFrame()).catch((error: unknown) => {
+        this.rejectPendingActivityRequest(error instanceof Error ? error : new Error(String(error)));
+      });
+    });
+  }
+
+  private resetPendingQuietTimer(): void {
+    const pending = this.pendingActivityRequest;
+    if (!pending) {
+      return;
+    }
+    if (pending.quietTimer) {
+      clearTimeout(pending.quietTimer);
+    }
+    pending.quietTimer = setTimeout(() => {
+      this.finishPendingActivityRequest();
+    }, Math.min(1500, this.options.timeoutMs));
+  }
+
+  private finishPendingActivityRequest(): void {
+    const pending = this.pendingActivityRequest;
+    if (!pending) {
+      return;
+    }
+
+    this.pendingActivityRequest = undefined;
+    if (pending.quietTimer) {
+      clearTimeout(pending.quietTimer);
+    }
+    if (pending.timeoutTimer) {
+      clearTimeout(pending.timeoutTimer);
+    }
+    const activities = [...pending.activities.values()].sort((left, right) => left.id - right.id);
+    this.latestActivities = activities;
+    this.options.onActivities?.(activities, pending.source);
+    pending.resolve(activities);
+  }
+
+  private rejectPendingActivityRequest(error: Error): void {
+    const pending = this.pendingActivityRequest;
+    if (!pending) {
+      return;
+    }
+
+    this.pendingActivityRequest = undefined;
+    if (pending.quietTimer) {
+      clearTimeout(pending.quietTimer);
+    }
+    if (pending.timeoutTimer) {
+      clearTimeout(pending.timeoutTimer);
+    }
+    pending.reject(error);
+  }
+
+  private handleDisconnect(reason: string): void {
+    this.socket = undefined;
+    this.rejectPendingActivityRequest(new Error(`SofaBaton X1S TCP connection ${reason}.`));
+    this.setConnected(false);
+    if (!this.stopped) {
+      this.scheduleReconnect();
+    }
+  }
+
+  private scheduleReconnect(): void {
+    if (this.reconnectTimer) {
+      return;
+    }
+
+    const base = Math.max(this.options.reconnectBaseMs, 100);
+    const delay = Math.min(base * 2 ** this.reconnectAttempt, 5 * 60 * 1000);
+    this.reconnectAttempt += 1;
+    this.options.debug?.(`Scheduling X1S reconnect in ${Math.round(delay / 1000)}s.`);
+    this.reconnectTimer = setTimeout(() => {
+      this.reconnectTimer = undefined;
+      this.options.debug?.('Attempting X1S reconnect.');
+      this.connectAndSynchronize('reconnect synchronization').catch((error: unknown) => {
+        this.options.debug?.(`X1S reconnect failed: ${error instanceof Error ? error.message : String(error)}`);
+        if (!this.stopped) {
+          this.scheduleReconnect();
+        }
+      });
+    }, delay);
+    this.reconnectTimer.unref?.();
+  }
+
+  private clearReconnectTimer(): void {
+    if (!this.reconnectTimer) {
+      return;
+    }
+    clearTimeout(this.reconnectTimer);
+    this.reconnectTimer = undefined;
+  }
+
+  private closeServer(): void {
+    if (!this.server) {
+      return;
+    }
+    this.server.close();
+    this.server = undefined;
+  }
+
+  private setConnected(value: boolean): void {
+    if (this.connected === value) {
+      return;
+    }
+    this.connected = value;
+    this.options.onConnectionChange?.(value);
+  }
+
+  private async enqueueCommand(command: () => Promise<void>): Promise<void> {
+    const previous = this.commandQueue;
+    let release!: () => void;
+    this.commandQueue = new Promise<void>((resolve) => {
+      release = resolve;
+    });
+
+    await previous;
+    try {
+      await command();
+    } finally {
+      release();
+    }
+  }
 }
 
 function waitForConnection(server: net.Server, timeoutMs: number): Promise<net.Socket> {
@@ -163,7 +403,7 @@ function waitForConnection(server: net.Server, timeoutMs: number): Promise<net.S
   });
 }
 
-function sendCallMe(hubIp: string, frame: Buffer, timeoutMs: number): Promise<void> {
+function sendCallMe(hubIp: string, hubUdpPort: number, frame: Buffer, timeoutMs: number): Promise<void> {
   return new Promise((resolve, reject) => {
     const socket = dgram.createSocket('udp4');
     const timer = setTimeout(() => {
@@ -171,7 +411,7 @@ function sendCallMe(hubIp: string, frame: Buffer, timeoutMs: number): Promise<vo
       reject(new Error('Timed out sending SofaBaton X1S discovery frame.'));
     }, timeoutMs);
 
-    socket.send(frame, 8102, hubIp, (error) => {
+    socket.send(frame, hubUdpPort, hubIp, (error) => {
       clearTimeout(timer);
       socket.close();
       if (error) {

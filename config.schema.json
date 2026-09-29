@@ -96,14 +96,6 @@
         "minimum": 1,
         "maximum": 255
       },
-      "pollIntervalSeconds": {
-        "title": "State Polling Interval",
-        "type": "integer",
-        "default": 60,
-        "minimum": 10,
-        "maximum": 3600,
-        "description": "Seconds between X1S activity-state refreshes. This lets HomeKit follow activity changes made from the physical remote or SofaBaton app."
-      },
       "commandTimeoutSeconds": {
         "title": "Command Timeout",
         "type": "integer",
@@ -112,11 +104,12 @@
         "maximum": 120
       },
       "retryIntervalSeconds": {
-        "title": "Retry Interval",
+        "title": "Reconnect Base Interval",
         "type": "integer",
         "default": 30,
         "minimum": 5,
-        "maximum": 3600
+        "maximum": 3600,
+        "description": "Base delay for reconnect attempts after the persistent X1S TCP connection drops. Later failures back off exponentially up to five minutes."
       },
       "debugProtocol": {
         "title": "Debug Protocol Logging",

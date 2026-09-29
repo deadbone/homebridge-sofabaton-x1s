@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.2.0-alpha.0
+
+- Replaces periodic activity polling with a persistent X1S TCP connection.
+- Refreshes activity state from hub `ACK_READY` events instead of `REQ_ACTIVITIES` every minute.
+- Adds reconnect backoff, shutdown cleanup, and deterministic socket tests for the event-driven flow.
+- Removes the `pollIntervalSeconds` configuration option.
+
 ## 0.1.4
 
 - Stops setting the Television-only `ConfiguredName` characteristic on activity Switch services to avoid Homebridge warnings.

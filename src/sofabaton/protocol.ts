@@ -4,6 +4,7 @@ export const OP_CALL_ME = 0x0CC3;
 export const OP_AUTH_REQUEST = 0x0001;
 export const OP_REQ_ACTIVITIES = 0x003A;
 export const OP_REQ_ACTIVATE = 0x023F;
+export const OP_ACK_READY = 0x0160;
 export const OP_RES_ACTIVITY = 0xD53B;
 export const KEY_POWER_ON = 0xC6;
 export const KEY_POWER_OFF = 0xC7;
@@ -13,6 +14,13 @@ export interface SofaBatonActivity {
   readonly name: string;
   readonly keyCode: number;
   readonly active?: boolean;
+}
+
+export interface SofaBatonFrame {
+  readonly opcode: number;
+  readonly payload: Buffer;
+  readonly raw: Buffer;
+  readonly end: number;
 }
 
 export function checksum(bytes: Uint8Array): number {
@@ -61,12 +69,9 @@ export function buildAuthRequestFrame(): Buffer {
 
 export function parseActivityCatalogFrames(data: Buffer): readonly SofaBatonActivity[] {
   const activities: SofaBatonActivity[] = [];
-  const starts = frameStarts(data);
 
-  for (let index = 0; index < starts.length; index += 1) {
-    const start = starts[index];
-    const end = starts[index + 1] ?? data.length;
-    const activity = parseActivityCatalogFrame(data.subarray(start, end));
+  for (const { raw } of splitFrames(data)) {
+    const activity = parseActivityCatalogFrame(raw);
     if (activity) {
       activities.push(activity);
     }
@@ -76,7 +81,7 @@ export function parseActivityCatalogFrames(data: Buffer): readonly SofaBatonActi
 }
 
 export function parseActivityCatalogFrame(frame: Buffer): SofaBatonActivity | undefined {
-  if (frame.length < 13 || frame[0] !== SYNC_0 || frame[1] !== SYNC_1) {
+  if (frame.length < 36 || frame[0] !== SYNC_0 || frame[1] !== SYNC_1) {
     return undefined;
   }
 
@@ -85,12 +90,13 @@ export function parseActivityCatalogFrame(frame: Buffer): SofaBatonActivity | un
     return undefined;
   }
 
-  const id = frame[11];
-  if (id === undefined || id < 1) {
+  const payload = frame.subarray(4, frame.length - 1);
+  const id = payload.length >= 8 ? payload.readUInt16BE(6) : frame[11];
+  if (id === undefined || id < 1 || id > 255) {
     return undefined;
   }
 
-  const name = findUtf16Name(frame.subarray(12, frame.length - 1));
+  const name = decodeX1SActivityName(frame.subarray(36, 96)) ?? findUtf16Name(frame.subarray(12, frame.length - 1));
   if (!name) {
     return undefined;
   }
@@ -99,14 +105,60 @@ export function parseActivityCatalogFrame(frame: Buffer): SofaBatonActivity | un
   return active === undefined ? { id, name, keyCode: KEY_POWER_ON } : { id, name, keyCode: KEY_POWER_ON, active };
 }
 
-function frameStarts(data: Buffer): readonly number[] {
-  const starts: number[] = [];
-  for (let index = 0; index < data.length - 1; index += 1) {
-    if (data[index] === SYNC_0 && data[index + 1] === SYNC_1) {
-      starts.push(index);
+export function splitFrames(data: Buffer): readonly SofaBatonFrame[] {
+  const frames: SofaBatonFrame[] = [];
+  let cursor = 0;
+
+  while (cursor < data.length - 1) {
+    if (data[cursor] !== SYNC_0 || data[cursor + 1] !== SYNC_1) {
+      cursor += 1;
+      continue;
     }
+
+    if (cursor + 5 > data.length) {
+      break;
+    }
+
+    const frameLength = 5 + data[cursor + 2];
+    if (cursor + frameLength > data.length) {
+      break;
+    }
+
+    const raw = data.subarray(cursor, cursor + frameLength);
+    if (raw[raw.length - 1] === checksum(raw.subarray(0, raw.length - 1))) {
+      frames.push({
+        opcode: raw.readUInt16BE(2),
+        payload: raw.subarray(4, raw.length - 1),
+        raw,
+        end: cursor + frameLength,
+      });
+      cursor += frameLength;
+      continue;
+    }
+
+    cursor += 1;
   }
-  return starts;
+
+  return frames;
+}
+
+function decodeX1SActivityName(slot: Buffer): string | undefined {
+  if (slot.length < 2) {
+    return undefined;
+  }
+
+  const text = slot.subarray(0, slot.length & ~1).toString('utf16le');
+  const swapped = Buffer.alloc(slot.length & ~1);
+  for (let index = 0; index < swapped.length; index += 2) {
+    swapped[index] = slot[index + 1] ?? 0;
+    swapped[index + 1] = slot[index] ?? 0;
+  }
+  const bigEndianText = swapped.toString('utf16le');
+  const candidates = [bigEndianText, text]
+    .map((candidate) => candidate.split('\u0000', 1)[0]?.trim())
+    .filter((candidate): candidate is string => Boolean(candidate && /[\p{L}\p{N}]/u.test(candidate)));
+
+  return candidates.sort((left, right) => right.length - left.length)[0];
 }
 
 function findUtf16Name(payload: Buffer): string | undefined {

@@ -69,7 +69,6 @@ Use `both` only as the legacy alias of `tv`:
 - `hubId`: stable HomeKit identity seed. Do not change it after pairing.
 - `discovery`: reads the local X1S activity catalog automatically. Default: `true`.
 - `localListenPort`: local TCP port used for the X1S callback. Default: `8200`.
-- `pollIntervalSeconds`: seconds between current-activity state refreshes. Default: `60`.
 - `exposureMode`: `switches`, `tv`, or `both`. Default: `switches`. Activity switches are always exposed; `tv` and `both` also add a Television accessory.
 - `manualActivities`: optional fallback or overrides for discovered activities.
 - `manualActivities[].id`: X1S activity id.
@@ -78,7 +77,7 @@ Use `both` only as the legacy alias of `tv`:
 - `enableAllOff`: enables all-off behavior. Default: `false`.
 - `allOffActivityId`: activity id used for all-off when enabled.
 - `commandTimeoutSeconds`: command timeout. Default: `8`.
-- `retryIntervalSeconds`: advanced retry interval accepted by the configuration. The current stable plugin does not run a dedicated automatic retry loop yet. Default: `30`.
+- `retryIntervalSeconds`: base reconnect delay after the persistent X1S TCP connection drops. Later failures back off up to five minutes. Default: `30`.
 - `debugProtocol`: verbose protocol logs. Default: `false`.
 - `assumeX1S`: development fallback only. Do not enable it to claim support for other SofaBaton models.
 
@@ -151,7 +150,6 @@ Utilisez `both` seulement comme alias historique de `tv` :
 - `hubId` : base d'identite HomeKit stable. Ne le changez pas apres l'association.
 - `discovery` : lit automatiquement le catalogue d'activites X1S local. Defaut : `true`.
 - `localListenPort` : port TCP local utilise pour le callback X1S. Defaut : `8200`.
-- `pollIntervalSeconds` : delai en secondes entre deux rafraichissements de l'activite active. Defaut : `60`.
 - `exposureMode` : `switches`, `tv` ou `both`. Defaut : `switches`. Les interrupteurs d'activites sont toujours exposes ; `tv` et `both` ajoutent aussi un accessoire Television.
 - `manualActivities` : secours optionnel ou surcharge des activites detectees.
 - `manualActivities[].id` : identifiant d'activite X1S.
@@ -160,6 +158,6 @@ Utilisez `both` seulement comme alias historique de `tv` :
 - `enableAllOff` : active le comportement all-off. Defaut : `false`.
 - `allOffActivityId` : identifiant d'activite utilise pour all-off quand active.
 - `commandTimeoutSeconds` : delai maximal d'une commande. Defaut : `8`.
-- `retryIntervalSeconds` : intervalle de reessai avance accepte par la configuration. La version stable actuelle ne lance pas encore de boucle de reessai automatique dediee. Defaut : `30`.
+- `retryIntervalSeconds` : delai de base pour les reconnexions apres perte de la connexion TCP X1S persistante. Les echecs suivants utilisent un backoff jusqu'a cinq minutes. Defaut : `30`.
 - `debugProtocol` : logs de protocole detailles. Defaut : `false`.
 - `assumeX1S` : option de developpement uniquement. Ne l'activez pas pour revendiquer la prise en charge d'autres modeles SofaBaton.

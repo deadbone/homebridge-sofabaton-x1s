@@ -72,7 +72,7 @@ Do not change `hubId` or activity ids after pairing unless you are ready for Hom
 - `tv`: persistent activity switches plus one Television accessory with activities as inputs.
 - `both`: same as `tv`, kept as a compatibility alias.
 
-Turning an activity switch ON starts that activity directly. The active activity switch stays ON until you turn it OFF, start another activity, or the next X1S state refresh sees that the remote/app changed the current activity.
+Turning an activity switch ON starts that activity directly. The active activity switch stays ON until you turn it OFF, start another activity, or the persistent X1S connection reports that the remote/app changed the current activity.
 
 ## Configuration Fields
 
@@ -89,9 +89,8 @@ Turning an activity switch ON starts that activity directly. The active activity
 - `enableAllOff`: enables the all-off behavior. Disabled by default until the path is validated on real X1S hardware.
 - `allOffActivityId`: activity id used for all-off when enabled.
 - `localListenPort`: local TCP callback port used by the X1S protocol.
-- `pollIntervalSeconds`: interval used to refresh the current activity state from the X1S hub. Default: `60`.
 - `commandTimeoutSeconds`: timeout for activity command attempts. Default: `8`.
-- `retryIntervalSeconds`: advanced retry interval accepted by the configuration. The current stable plugin does not run a dedicated automatic retry loop yet.
+- `retryIntervalSeconds`: base reconnect delay after the persistent X1S TCP connection drops. Later failures back off up to five minutes. Default: `30`.
 - `debugProtocol`: verbose protocol logging for troubleshooting. Default: `false`.
 - `assumeX1S`: development fallback only. Do not enable it to claim support for other SofaBaton models.
 
@@ -243,9 +242,8 @@ Activer un interrupteur démarre directement l’activité. L’interrupteur de 
 - `enableAllOff` : active le comportement all-off. Désactivé par défaut tant que le chemin n’est pas validé sur une vraie X1S.
 - `allOffActivityId` : identifiant utilisé pour all-off quand l’option est activée.
 - `localListenPort` : port TCP local utilisé par le protocole X1S.
-- `pollIntervalSeconds` : intervalle de rafraîchissement de l’activité active depuis le hub X1S. Défaut : `60`.
 - `commandTimeoutSeconds` : délai maximal pour les commandes d’activité. Défaut : `8`.
-- `retryIntervalSeconds` : intervalle de réessai avancé accepté par la configuration. La version stable actuelle ne lance pas encore de boucle de réessai automatique dédiée.
+- `retryIntervalSeconds` : délai de base pour les reconnexions après perte de la connexion TCP X1S persistante. Les échecs suivants utilisent un backoff jusqu’à cinq minutes. Défaut : `30`.
 - `debugProtocol` : logs de protocole détaillés pour diagnostic. Défaut : `false`.
 - `assumeX1S` : option de développement uniquement. Ne l’activez pas pour revendiquer la prise en charge d’autres modèles SofaBaton.
 

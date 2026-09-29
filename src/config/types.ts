@@ -22,7 +22,6 @@ export interface NormalizedPlatformConfig {
   readonly exposureMode: ExposureMode;
   readonly enableAllOff: boolean;
   readonly allOffActivityId?: number;
-  readonly pollIntervalSeconds: number;
   readonly commandTimeoutSeconds: number;
   readonly retryIntervalSeconds: number;
   readonly debugProtocol: boolean;
