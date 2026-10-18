@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.2.1
+
+- Promotes the cached accessory name correction from `0.2.1-alpha.0` to stable.
+- Uses Homebridge `updateDisplayName()` when restoring cached activity switches and the optional Television accessory.
+- Keeps the external Television accessory migration planned in `ROADMAP.md`.
+
 ## 0.2.1-alpha.0
 
 - Uses Homebridge `updateDisplayName()` when restoring cached activity switches and the optional Television accessory to keep platform and HAP accessory names synchronized.

@@ -2,7 +2,7 @@
 
 ## Publish the Television as an external accessory
 
-Status: planned; not implemented in `0.2.1-alpha.0`.
+Status: planned; not implemented in `0.2.1`.
 
 The optional Television currently uses `registerPlatformAccessories()` and is bridged. Publish it separately using `publishExternalAccessories(PLUGIN_NAME, [accessory])` with the HomeKit `TELEVISION` category, so it follows the expected HomeKit TV accessory model. Activity switches should remain bridged.
 
