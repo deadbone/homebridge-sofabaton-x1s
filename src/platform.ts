@@ -264,7 +264,7 @@ export class SofaBatonX1SPlatform implements DynamicPlatformPlugin {
   private registerOrRestoreTelevision(uuid: string, activities: readonly NormalizedActivityConfig[]): void {
     const existing = this.accessories.get(uuid);
     if (existing) {
-      existing.displayName = this.configData.name;
+      existing.updateDisplayName(this.configData.name);
       existing.context.kind = 'television';
       this.api.updatePlatformAccessories([existing]);
       new X1STelevisionAccessory(this, existing, activities);
@@ -282,7 +282,7 @@ export class SofaBatonX1SPlatform implements DynamicPlatformPlugin {
     const displayName = sanitizeHomeKitName(activity.name);
     const existing = this.accessories.get(uuid);
     if (existing) {
-      existing.displayName = displayName;
+      existing.updateDisplayName(displayName);
       existing.context.kind = 'activity-switch';
       existing.context.activityId = activity.id;
       this.api.updatePlatformAccessories([existing]);

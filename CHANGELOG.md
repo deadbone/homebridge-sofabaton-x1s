@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.2.1-alpha.0
+
+- Uses Homebridge `updateDisplayName()` when restoring cached activity switches and the optional Television accessory to keep platform and HAP accessory names synchronized.
+- Records the planned external Television accessory migration in `ROADMAP.md`; Television publishing is unchanged in this alpha.
+
 ## 0.2.0
 
 - Promotes the event-driven SofaBaton X1S state architecture from alpha to stable.
