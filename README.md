@@ -16,7 +16,7 @@ It currently provides:
 - automatic activity catalog discovery from the local X1S hub;
 - optional manual activity configuration as fallback or override;
 - local X1S `POWER_ON` / `POWER_OFF` command support;
-- periodic X1S activity-state refresh so HomeKit can follow remote/app changes;
+- activity state updates from X1S hub events so HomeKit can follow changes made with the remote or SofaBaton app;
 - plugin icon asset;
 - CI on Node.js `22.12.0` and `24.x`;
 - npm package archive verification.
@@ -169,7 +169,7 @@ Elle fournit actuellement :
 - la découverte automatique du catalogue d’activités depuis le hub X1S local ;
 - une configuration manuelle optionnelle comme secours ou surcharge ;
 - l’envoi local des commandes X1S `POWER_ON` / `POWER_OFF` ;
-- le rafraîchissement périodique de l’activité active pour suivre les changements faits depuis la télécommande ou l’app SofaBaton ;
+- la mise à jour de l’activité active à partir des événements du hub X1S pour suivre les changements faits depuis la télécommande ou l’app SofaBaton ;
 - une icône de plugin ;
 - une CI sur Node.js `22.12.0` et `24.x` ;
 - une vérification de l’archive npm réelle.

@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.2.2
+
+- Clarifies in the README and wiki that HomeKit activity state updates are triggered by X1S hub events. Documentation only.
+
 ## 0.2.1
 
 - Promotes the cached accessory name correction from `0.2.1-alpha.0` to stable.
