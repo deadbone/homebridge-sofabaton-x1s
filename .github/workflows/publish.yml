@@ -1,6 +1,12 @@
 name: Publish to npm
 
 on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: Exact beta version in package.json to publish under the beta dist-tag
+        required: true
+        type: string
   pull_request:
     types: [opened, synchronize, reopened, ready_for_review]
     branches:
@@ -78,7 +84,7 @@ jobs:
 
   publish-tag:
     name: Publish tag
-    if: github.event_name == 'push'
+    if: github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main')
     runs-on: ubuntu-latest
     environment: npm
 
@@ -99,7 +105,21 @@ jobs:
       - name: Install
         run: npm ci
 
+      - name: Check requested beta version
+        if: github.event_name == 'workflow_dispatch'
+        env:
+          REQUESTED_VERSION: ${{ inputs.version }}
+        run: |
+          node --input-type=module <<'NODE'
+          import { readFileSync } from 'node:fs';
+          const { version } = JSON.parse(readFileSync('package.json', 'utf8'));
+          if (version !== process.env.REQUESTED_VERSION || !/^\d+\.\d+\.\d+-beta\.\d+$/.test(version)) {
+            throw new Error('Requested version must match the checked-out beta version.');
+          }
+          NODE
+
       - name: Check tag matches package version
+        if: github.event_name == 'push'
         run: |
           PACKAGE_VERSION="$(node -p "require('./package.json').version")"
           TAG_VERSION="${GITHUB_REF_NAME#v}"
@@ -121,15 +141,20 @@ jobs:
         run: npm run verify:pack
 
       - name: Publish
+        env:
+          PUBLISH_EVENT: ${{ github.event_name }}
         run: |
           PACKAGE_VERSION="$(node -p "require('./package.json').version")"
-          if [[ "$PACKAGE_VERSION" == *-* ]]; then
+          if [[ "$PUBLISH_EVENT" == "workflow_dispatch" ]]; then
+            npm publish --tag beta --provenance
+          elif [[ "$PACKAGE_VERSION" == *-* ]]; then
             npm publish --tag alpha --provenance
           else
             npm publish --provenance
           fi
 
       - name: Create GitHub Release
+        if: github.event_name == 'push'
         env:
           GH_TOKEN: ${{ github.token }}
         run: |

@@ -34,6 +34,17 @@
         "default": true,
         "description": "Automatically read the X1S activity catalog from the local hub when hubIp is configured."
       },
+      "appCompatibility": {
+        "title": "Official iOS App Compatibility (Experimental)",
+        "type": "boolean",
+        "default": false,
+        "description": "Integrated local X1S proxy. HomeKit commands are rejected while the app is connected. Requires UDP broadcast on the same LAN and free UDP port 8102. Real iOS/X1S validation is still required."
+      },
+      "appCompatibilityAddress": {
+        "title": "Proxy LAN IPv4 Address (Optional)",
+        "type": "string",
+        "description": "A private IPv4 address assigned to this Homebridge host. Leave empty to select the single interface on the hub subnet. Set it on hosts with multiple LAN interfaces."
+      },
       "localListenPort": {
         "title": "Local Listen Port",
         "type": "integer",

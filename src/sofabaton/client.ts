@@ -1,6 +1,12 @@
 import dgram from 'node:dgram';
 import net from 'node:net';
 import os from 'node:os';
+import { SofaBatonAppProxy } from './app-proxy.js';
+import { discoveryFromBanner } from './app-protocol.js';
+import { selectAppNetwork } from './local-network.js';
+import type { LocalNetwork } from './local-network.js';
+import { SessionManager } from './session.js';
+import type { SessionState } from './session.js';
 import {
   OP_ACK_READY,
   OP_RES_ACTIVITY,
@@ -15,6 +21,15 @@ import type { SofaBatonActivity } from './protocol.js';
 
 export interface SofaBatonClientOptions {
   readonly hubIp: string;
+  readonly appCompatibility?: boolean;
+  readonly appCompatibilityAddress?: string;
+  readonly log?: (message: string) => void;
+  readonly onSessionState?: (state: SessionState) => void;
+  /** Local socket simulation only. */
+  readonly proxyNetwork?: LocalNetwork;
+  readonly proxyUdpPort?: number;
+  readonly proxyReplyPort?: number;
+  readonly proxyBroadcast?: string;
   readonly listenPort: number;
   readonly timeoutMs: number;
   readonly reconnectBaseMs: number;
@@ -36,6 +51,15 @@ interface PendingActivityRequest {
 
 export class SofaBatonX1SClient {
   private server?: net.Server;
+  private proxy?: SofaBatonAppProxy;
+  private network?: LocalNetwork;
+  private identity?: Buffer;
+  private bannerIdentity?: Buffer;
+  private readonly session: SessionManager;
+  private fragmentTimer?: NodeJS.Timeout;
+  private commandCount = 0;
+  private epoch = 0;
+  private cancelConnection?: () => void;
   private socket?: net.Socket;
   private starting?: Promise<readonly SofaBatonActivity[]>;
   private stopped = true;
@@ -47,7 +71,58 @@ export class SofaBatonX1SClient {
   private pendingActivityRequest?: PendingActivityRequest;
   private latestActivities: readonly SofaBatonActivity[] = [];
 
-  public constructor(private readonly options: SofaBatonClientOptions) {}
+  public constructor(private readonly options: SofaBatonClientOptions) {
+    this.session = new SessionManager(options.onSessionState);
+  }
+
+  public get sessionState(): SessionState { return this.session.state; }
+  public get proxyPort(): number | undefined { return this.proxy?.port; }
+
+  private async startProxy(): Promise<void> {
+    if (!this.options.appCompatibility || this.proxy) { return; }
+    this.network = this.options.proxyNetwork ?? selectAppNetwork(this.options.hubIp, this.options.appCompatibilityAddress);
+    const proxy = new SofaBatonAppProxy({
+      network: this.network,
+      timeoutMs: this.options.timeoutMs,
+      identity: () => this.identity,
+      bannerIdentity: () => this.bannerIdentity,
+      available: () => this.session.state === 'HOMEBRIDGE_ACTIVE',
+      acquire: () => {
+        if (this.session.state !== 'HOMEBRIDGE_ACTIVE' || this.pendingActivityRequest || this.commandCount
+          || this.receiveBuffer.length || !this.socket || this.socket.destroyed) { return undefined; }
+        this.session.transition('IOS_APP_ACTIVE');
+        return this.socket;
+      },
+      release: (socket) => {
+        if (this.stopped || this.socket !== socket) { return; }
+        this.session.transition('RECONNECTING');
+        if (socket.destroyed) { return; }
+        const epoch = this.epoch;
+        void writeSocket(socket, buildAuthRequestFrame()).then(async () => {
+          await delay(250);
+          if (this.stopped || this.epoch !== epoch || this.socket !== socket || socket.destroyed) {
+            throw new Error('X1S restoration cancelled.');
+          }
+          return await this.requestActivities('iOS session ended');
+        }).then(() => {
+          if (!this.stopped && this.socket === socket && !socket.destroyed) {
+            this.session.transition('HOMEBRIDGE_ACTIVE');
+            this.options.log?.('Homebridge restored; activity synchronization completed.');
+          }
+        }).catch(() => { socket.destroy(); });
+      },
+      log: (message) => this.options.log?.(message),
+      debug: this.options.debug,
+      udpPort: this.options.proxyUdpPort,
+      replyPort: this.options.proxyReplyPort,
+      broadcast: this.options.proxyBroadcast,
+    });
+    this.proxy = proxy;
+    try { await proxy.start(); } catch (error) {
+      if (this.proxy === proxy) { this.proxy = undefined; }
+      throw error;
+    }
+  }
 
   public async start(): Promise<readonly SofaBatonActivity[]> {
     if (this.starting) {
@@ -58,14 +133,38 @@ export class SofaBatonX1SClient {
     }
 
     this.stopped = false;
-    this.starting = this.connectAndSynchronize('initial synchronization').finally(() => {
-      this.starting = undefined;
+    const epoch = ++this.epoch;
+    if (this.options.appCompatibility) {
+      this.session.transition(this.session.state === 'DISCONNECTED' || this.session.state === 'ERROR' ? 'CONNECTING' : 'RECONNECTING');
+    }
+    this.starting = this.startProxy().then(() => {
+      if (this.stopped || this.epoch !== epoch) { throw new Error('X1S startup cancelled.'); }
+      return this.connectAndSynchronize('initial synchronization');
+    }).catch((error: unknown) => {
+      if (this.options.appCompatibility && !this.stopped && this.epoch === epoch) {
+        this.session.transition('ERROR');
+        this.scheduleReconnect();
+      }
+      throw error;
+    }).finally(() => {
+      if (this.epoch === epoch) { this.starting = undefined; }
     });
     return await this.starting;
   }
 
   public stop(): void {
     this.stopped = true;
+    this.epoch++;
+    this.starting = undefined;
+    this.cancelConnection?.();
+    this.cancelConnection = undefined;
+    this.proxy?.stop();
+    this.proxy = undefined;
+    this.identity = undefined;
+    this.bannerIdentity = undefined;
+    clearTimeout(this.fragmentTimer);
+    this.fragmentTimer = undefined;
+    if (this.options.appCompatibility) { this.session.transition('DISCONNECTED'); }
     this.clearReconnectTimer();
     this.rejectPendingActivityRequest(new Error('SofaBaton X1S client stopped.'));
     this.socket?.destroy();
@@ -75,8 +174,10 @@ export class SofaBatonX1SClient {
   }
 
   public async activateActivity(activityId: number, keyCode = 0): Promise<void> {
+    if (this.options.appCompatibility) { this.session.assertHomebridge(); }
     await this.ensureStarted();
     await this.enqueueCommand(async () => {
+      if (this.options.appCompatibility) { this.session.assertHomebridge(); }
       const socket = this.socket;
       if (!socket || socket.destroyed) {
         throw new Error('SofaBaton X1S hub is not connected.');
@@ -86,6 +187,7 @@ export class SofaBatonX1SClient {
   }
 
   public async synchronizeActivities(source = 'manual synchronization'): Promise<readonly SofaBatonActivity[]> {
+    if (this.options.appCompatibility) { this.session.assertHomebridge(); }
     await this.ensureStarted();
     return await this.requestActivities(source);
   }
@@ -102,8 +204,11 @@ export class SofaBatonX1SClient {
 
   private async connectAndSynchronize(source: string): Promise<readonly SofaBatonActivity[]> {
     this.clearReconnectTimer();
+    const epoch = this.epoch;
+    await this.startProxy();
+    if (this.stopped || epoch !== this.epoch) { throw new Error('X1S connection cancelled.'); }
     const socket = await this.openPersistentSession();
-    if (this.stopped) {
+    if (this.stopped || epoch !== this.epoch) {
       socket.destroy();
       return [];
     }
@@ -111,28 +216,49 @@ export class SofaBatonX1SClient {
     this.installSocket(socket);
     await writeSocket(socket, buildAuthRequestFrame());
     await delay(250);
+    if (this.stopped || epoch !== this.epoch || this.socket !== socket || socket.destroyed) {
+      throw new Error('X1S synchronization cancelled.');
+    }
     const activities = await this.requestActivities(source);
+    if (this.options.appCompatibility && !this.stopped && this.socket === socket && !socket.destroyed) {
+      this.session.transition('HOMEBRIDGE_ACTIVE');
+      this.options.log?.('Homebridge connected; activity synchronization completed.');
+      if (!this.identity) { this.options.log?.('iOS discovery unavailable: no valid X1S identity banner received.'); }
+    }
     this.reconnectAttempt = 0;
     return activities;
   }
 
   private async openPersistentSession(): Promise<net.Socket> {
     this.closeServer();
-    const localIp = getLocalIpFor(this.options.hubIp);
+    const localIp = this.network?.address ?? getLocalIpFor(this.options.hubIp);
+    const epoch = this.epoch;
     const server = net.createServer();
     this.server = server;
+    server.on('error', (error) => this.options.debug?.(`X1S TCP listener error: ${error.message}`));
 
     await new Promise<void>((resolve, reject) => {
+      const closed = () => reject(new Error('X1S listener closed during startup.'));
+      server.once('close', closed);
       server.once('error', reject);
-      server.listen(this.options.listenPort, '0.0.0.0', () => {
+      server.listen(this.options.listenPort, this.network?.address ?? '0.0.0.0', () => {
         server.off('error', reject);
+        server.off('close', closed);
         resolve();
       });
     });
 
+    if (this.stopped || epoch !== this.epoch) {
+      server.close();
+      throw new Error('X1S listener startup cancelled.');
+    }
     const address = server.address();
     const listenPort = typeof address === 'object' && address ? address.port : this.options.listenPort;
-    const socketPromise = waitForConnection(server, this.options.timeoutMs);
+    const controller = new AbortController();
+    this.cancelConnection = () => controller.abort();
+    const socketPromise = waitForConnection(server, this.options.timeoutMs, controller.signal,
+      this.options.appCompatibility ? this.options.hubIp : undefined);
+    void socketPromise.catch(() => undefined);
     try {
       await sendCallMe(
         this.options.hubIp,
@@ -143,10 +269,14 @@ export class SofaBatonX1SClient {
 
       const socket = await socketPromise;
       this.options.debug?.(`X1S persistent hub connection from ${socket.remoteAddress ?? 'unknown address'}`);
+      if (this.server === server) { this.cancelConnection = undefined; }
       return socket;
     } catch (error) {
-      void socketPromise.catch(() => undefined);
-      this.closeServer();
+      controller.abort();
+      if (this.server === server) {
+        this.cancelConnection = undefined;
+        this.closeServer();
+      }
       throw error;
     }
   }
@@ -155,13 +285,17 @@ export class SofaBatonX1SClient {
     this.socket?.destroy();
     this.socket = socket;
     this.receiveBuffer = Buffer.alloc(0);
+    this.identity = undefined;
+    this.bannerIdentity = undefined;
+    clearTimeout(this.fragmentTimer);
+    this.fragmentTimer = undefined;
     socket.setNoDelay(true);
     socket.setKeepAlive(true);
     socket.on('data', (data) => {
-      this.handleData(data);
+      if (this.socket === socket) { this.handleData(data); }
     });
     socket.once('close', () => {
-      this.handleDisconnect('closed');
+      if (this.socket === socket) { this.handleDisconnect('closed'); }
     });
     socket.once('error', (error) => {
       this.options.debug?.(`X1S TCP socket error: ${error.message}`);
@@ -170,16 +304,31 @@ export class SofaBatonX1SClient {
   }
 
   private handleData(data: Buffer): void {
+    if (this.options.appCompatibility && this.session.state === 'IOS_APP_ACTIVE') { return; }
+    if (this.options.appCompatibility && this.receiveBuffer.length + data.length > 256 * 1024) {
+      this.options.log?.('X1S protocol receive limit exceeded; reconnecting.');
+      this.socket?.destroy();
+      return;
+    }
     this.receiveBuffer = Buffer.concat([this.receiveBuffer, data]);
     const frames = splitFrames(this.receiveBuffer);
     if (frames.length === 0) {
+      this.boundFragmentWait();
       return;
     }
 
     this.receiveBuffer = this.receiveBuffer.subarray(frames[frames.length - 1]?.end ?? 0);
+    clearTimeout(this.fragmentTimer);
+    this.fragmentTimer = undefined;
+    this.boundFragmentWait();
 
     for (const frame of frames) {
+      if (this.options.appCompatibility && (frame.opcode & 0xFF) === 2) {
+        this.identity = discoveryFromBanner(frame.raw);
+        this.bannerIdentity = this.identity ? Buffer.from(frame.payload.subarray(0, 6)) : undefined;
+      }
       if (frame.opcode === OP_ACK_READY) {
+        if (this.options.appCompatibility && this.session.state !== 'HOMEBRIDGE_ACTIVE') { continue; }
         this.options.debug?.('X1S ACK_READY received; refreshing activity state once.');
         void this.requestActivities('X1S ACK_READY event').catch((error: unknown) => {
           this.options.debug?.(`X1S ACK_READY activity refresh failed: ${error instanceof Error ? error.message : String(error)}`);
@@ -190,6 +339,20 @@ export class SofaBatonX1SClient {
       if (frame.opcode === OP_RES_ACTIVITY) {
         this.handleActivityFrame(frame.raw, frame.payload);
       }
+    }
+  }
+
+  private boundFragmentWait(): void {
+    if (!this.options.appCompatibility) { return; }
+    if (this.receiveBuffer.length === 0) {
+      clearTimeout(this.fragmentTimer);
+      this.fragmentTimer = undefined;
+    } else if (!this.fragmentTimer) {
+      const socket = this.socket;
+      this.fragmentTimer = setTimeout(() => {
+        this.fragmentTimer = undefined;
+        if (socket === this.socket) { socket?.destroy(); }
+      }, this.options.timeoutMs);
     }
   }
 
@@ -222,8 +385,8 @@ export class SofaBatonX1SClient {
 
   private async requestActivities(source: string): Promise<readonly SofaBatonActivity[]> {
     const socket = this.socket;
-    if (!socket || socket.destroyed) {
-      throw new Error('SofaBaton X1S hub is not connected.');
+    if (!socket || socket.destroyed || (this.options.appCompatibility && this.session.state === 'IOS_APP_ACTIVE')) {
+      throw new Error('SofaBaton X1S hub is not available to Homebridge.');
     }
 
     if (this.pendingActivityRequest) {
@@ -258,6 +421,7 @@ export class SofaBatonX1SClient {
       };
       this.pendingActivityRequest.timeoutTimer = setTimeout(() => {
         this.rejectPendingActivityRequest(new Error('Timed out waiting for SofaBaton X1S activity rows.'));
+        if (this.options.appCompatibility) { socket.destroy(); }
       }, this.options.timeoutMs);
       this.resetPendingQuietTimer();
       this.options.debug?.(`Requesting X1S activities: ${source}`);
@@ -293,6 +457,12 @@ export class SofaBatonX1SClient {
     if (pending.timeoutTimer) {
       clearTimeout(pending.timeoutTimer);
     }
+    if (this.options.appCompatibility && (pending.activities.size === 0
+      || (pending.expectedRows !== undefined && pending.activities.size < pending.expectedRows))) {
+      pending.reject(new Error('Incomplete X1S activity synchronization; HomeKit state was not restored.'));
+      this.socket?.destroy();
+      return;
+    }
     const activities = [...pending.activities.values()].sort((left, right) => left.id - right.id);
     this.latestActivities = activities;
     this.options.onActivities?.(activities, pending.source);
@@ -317,6 +487,9 @@ export class SofaBatonX1SClient {
 
   private handleDisconnect(reason: string): void {
     this.socket = undefined;
+    clearTimeout(this.fragmentTimer);
+    this.fragmentTimer = undefined;
+    if (this.options.appCompatibility && !this.stopped) { this.session.transition('RECONNECTING'); }
     this.rejectPendingActivityRequest(new Error(`SofaBaton X1S TCP connection ${reason}.`));
     this.setConnected(false);
     if (!this.stopped) {
@@ -336,12 +509,19 @@ export class SofaBatonX1SClient {
     this.reconnectTimer = setTimeout(() => {
       this.reconnectTimer = undefined;
       this.options.debug?.('Attempting X1S reconnect.');
-      this.connectAndSynchronize('reconnect synchronization').catch((error: unknown) => {
+      if (this.options.appCompatibility) { this.session.transition('RECONNECTING'); }
+      const epoch = this.epoch;
+      const attempt = this.connectAndSynchronize('reconnect synchronization').catch((error: unknown) => {
         this.options.debug?.(`X1S reconnect failed: ${error instanceof Error ? error.message : String(error)}`);
-        if (!this.stopped) {
+        if (!this.stopped && this.epoch === epoch) {
+          if (this.options.appCompatibility) { this.session.transition('ERROR'); }
           this.scheduleReconnect();
         }
+        return [];
+      }).finally(() => {
+        if (this.starting === attempt) { this.starting = undefined; }
       });
+      this.starting = attempt;
     }, delay);
     this.reconnectTimer.unref?.();
   }
@@ -371,6 +551,7 @@ export class SofaBatonX1SClient {
   }
 
   private async enqueueCommand(command: () => Promise<void>): Promise<void> {
+    this.commandCount++;
     const previous = this.commandQueue;
     let release!: () => void;
     this.commandQueue = new Promise<void>((resolve) => {
@@ -381,45 +562,52 @@ export class SofaBatonX1SClient {
     try {
       await command();
     } finally {
+      this.commandCount--;
       release();
     }
   }
 }
 
-function waitForConnection(server: net.Server, timeoutMs: number): Promise<net.Socket> {
+function waitForConnection(server: net.Server, timeoutMs: number, signal: AbortSignal, hubIp?: string): Promise<net.Socket> {
   return new Promise((resolve, reject) => {
-    const timer = setTimeout(() => {
-      reject(new Error('Timed out waiting for SofaBaton X1S hub callback connection.'));
-    }, timeoutMs);
-
-    server.once('connection', (socket) => {
+    let accepted = false;
+    const cleanup = () => {
       clearTimeout(timer);
+      signal.removeEventListener('abort', abort);
+      server.off('error', fail);
+    };
+    const fail = (error: Error) => { cleanup(); reject(error); };
+    const abort = () => fail(new Error('X1S callback cancelled.'));
+    const timer = setTimeout(() => fail(new Error('Timed out waiting for SofaBaton X1S hub callback connection.')), timeoutMs);
+    signal.addEventListener('abort', abort, { once: true });
+    server.on('connection', (socket) => {
+      if (signal.aborted || accepted || (hubIp && socket.remoteAddress !== hubIp)) {
+        socket.destroy();
+        return;
+      }
+      accepted = true;
+      cleanup();
       resolve(socket);
     });
-    server.once('error', (error) => {
-      clearTimeout(timer);
-      reject(error);
-    });
+    server.once('error', fail);
   });
 }
 
 function sendCallMe(hubIp: string, hubUdpPort: number, frame: Buffer, timeoutMs: number): Promise<void> {
   return new Promise((resolve, reject) => {
     const socket = dgram.createSocket('udp4');
-    const timer = setTimeout(() => {
-      socket.close();
-      reject(new Error('Timed out sending SofaBaton X1S discovery frame.'));
-    }, timeoutMs);
-
-    socket.send(frame, hubUdpPort, hubIp, (error) => {
+    let settled = false;
+    const finish = (error?: Error | null) => {
+      if (settled) { return; }
+      settled = true;
       clearTimeout(timer);
-      socket.close();
-      if (error) {
-        reject(error);
-        return;
-      }
-      resolve();
-    });
+      try { socket.close(); } catch { /* Socket failed before binding. */ }
+      if (error) { reject(error); } else { resolve(); }
+    };
+    const timer = setTimeout(() => finish(new Error('Timed out sending SofaBaton X1S discovery frame.')), timeoutMs);
+    socket.once('error', finish);
+
+    socket.send(frame, hubUdpPort, hubIp, finish);
   });
 }
 

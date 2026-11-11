@@ -43,6 +43,9 @@ export class SofaBatonX1SPlatform implements DynamicPlatformPlugin {
     if (this.configData.hubIp) {
       this.client = new SofaBatonX1SClient({
         hubIp: this.configData.hubIp,
+        appCompatibility: this.configData.appCompatibility,
+        appCompatibilityAddress: this.configData.appCompatibilityAddress,
+        log: (message) => this.logger.info(message),
         listenPort: this.configData.localListenPort,
         timeoutMs: this.configData.commandTimeoutSeconds * 1000,
         reconnectBaseMs: this.configData.retryIntervalSeconds * 1000,
@@ -313,6 +316,7 @@ function disabledConfig(config: PlatformConfig): NormalizedPlatformConfig {
     name,
     hubId: 'sofabaton-x1s-disabled',
     discovery: false,
+    appCompatibility: false,
     localListenPort: 8200,
     exposureMode: 'switches',
     enableAllOff: false,

@@ -1,4 +1,5 @@
 import { isIP } from 'node:net';
+import { privateIp } from '../sofabaton/local-network.js';
 import type { PlatformConfig } from 'homebridge';
 import type { ExposureMode, ManualActivityConfig, NormalizedPlatformConfig } from './types.js';
 import { DEFAULT_PLATFORM_NAME } from '../settings.js';
@@ -20,7 +21,18 @@ export function normalizeConfig(config: PlatformConfig): NormalizedPlatformConfi
   const exposureMode = exposure(config.exposureMode);
   const manualActivities = normalizeActivities(config.manualActivities);
 
+  const appCompatibility = optionalBoolean(config.appCompatibility, false);
+  const appCompatibilityAddress = optionalString(config.appCompatibilityAddress, 'appCompatibilityAddress');
+  if (appCompatibilityAddress !== undefined && !privateIp(appCompatibilityAddress)) {
+    throw new ConfigValidationError('appCompatibilityAddress must be a private LAN IPv4 address.');
+  }
+  if (appCompatibility && (!hubIp || !privateIp(hubIp))) {
+    throw new ConfigValidationError('appCompatibility requires a private LAN hubIp.');
+  }
+
   return {
+    appCompatibility,
+    appCompatibilityAddress,
     name,
     hubIp,
     hubId,

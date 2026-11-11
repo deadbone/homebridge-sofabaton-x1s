@@ -159,3 +159,9 @@ npm run verify:pack
 npm pack --dry-run
 npm publish --tag alpha
 ```
+
+## Manual beta workflow / Publication bêta manuelle
+
+For a beta, set package.json and package-lock.json to the same `X.Y.Z-beta.N` version, update the changelog, validate and push main. Run the existing `publish.yml` workflow manually on main with the exact `version` input. It verifies the version, runs the checks, and publishes through npm Trusted Publishing with `--tag beta --provenance`. It does not create a Git tag or GitHub Release, and does not move `latest`.
+
+Pour une bêta, renseigner la même version `X.Y.Z-beta.N` dans package.json et package-lock.json, mettre à jour le changelog, valider puis pousser main. Déclencher manuellement `publish.yml` sur main avec cette valeur exacte dans `version`. Le workflow vérifie la version, exécute les contrôles et publie via npm Trusted Publishing avec `--tag beta --provenance`. Il ne crée ni tag Git ni release GitHub et ne déplace pas `latest`.

@@ -18,6 +18,8 @@ export interface NormalizedPlatformConfig {
   readonly hubIp?: string;
   readonly hubId: string;
   readonly discovery: boolean;
+  readonly appCompatibility: boolean;
+  readonly appCompatibilityAddress?: string;
   readonly localListenPort: number;
   readonly exposureMode: ExposureMode;
   readonly enableAllOff: boolean;

@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.3.0-beta.0
+
+- Adds an opt-in experimental integrated iOS app proxy (`appCompatibility`, default `false`) and optional LAN interface selection. Uses the real X1S banner identity for UDP discovery; no extra dependency, service or HomeKit UUID change.
+- Adds exclusive session ownership, explicit HomeKit command rejection during app sessions, framed bidirectional relay, bounded buffering, shutdown cleanup and automatic activity-state restoration after TCP closure.
+- Adds local socket/configuration/protocol tests and bilingual analysis, network requirements and hardware acceptance steps. Simulations are not real iOS/X1S validation; cached direct hub connections and broadcast/container behavior remain important limitations.
+- Ajoute un proxy iOS intégré expérimental, facultatif et désactivé par défaut, avec arbitrage des sessions et restauration automatique des états HomeKit. L’identité X1S réelle est conservée.
+- Documente les limites de découverte, Docker et connexions directes mémorisées, ainsi que les essais nécessaires sur un véritable iPhone/X1S. Aucune compatibilité matérielle complète n’est annoncée.
+
 ## 0.2.2
 
 - Clarifies in the README and wiki that HomeKit activity state updates are triggered by X1S hub events. Documentation only.

@@ -88,3 +88,18 @@ describe('normalizeConfig', () => {
     })).toThrow(/duplicate activity id/);
   });
 });
+
+describe('app compatibility configuration', () => {
+  it('defaults to disabled and can be enabled from UI configuration', () => {
+    expect(normalizeConfig({ platform: 'SofaBatonX1S' }).appCompatibility).toBe(false);
+    expect(normalizeConfig({ platform: 'SofaBatonX1S', hubIp: '192.168.1.50', appCompatibility: true }).appCompatibility).toBe(true);
+  });
+  it('requires a private hub and validates the optional interface address', () => {
+    for (const hubIp of [undefined, '8.8.8.8', 'invalid']) {
+      expect(() => normalizeConfig({ platform: 'SofaBatonX1S', appCompatibility: true, hubIp })).toThrow(/hubIp/);
+    }
+    expect(() => normalizeConfig({ platform: 'SofaBatonX1S', appCompatibility: 'true' })).toThrow(/Boolean/);
+    expect(() => normalizeConfig({ platform: 'SofaBatonX1S', appCompatibilityAddress: '0.0.0.0' })).toThrow(/private LAN/);
+    expect(normalizeConfig({ platform: 'SofaBatonX1S', appCompatibilityAddress: '' }).appCompatibilityAddress).toBeUndefined();
+  });
+});
