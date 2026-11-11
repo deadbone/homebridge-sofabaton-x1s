@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.3.0-beta.1
+
+- Preserves cached HomeKit accessories when initial hub discovery fails or returns an empty list. A later successful synchronization reconciles accessories and restores their activity states automatically. Commands are rejected while discovery is incomplete and are never replayed.
+- Conserve les accessoires HomeKit en cache après un échec ou un résultat vide de découverte. Une synchronisation réussie les réconcilie automatiquement et restaure leurs états. Les commandes sont refusées pendant cette attente et ne sont jamais rejouées.
+- Adds platform regression tests covering cache preservation, recovery, state synchronization and intentional accessory removal.
+
 ## 0.3.0-beta.0
 
 - Adds an opt-in experimental integrated iOS app proxy (`appCompatibility`, default `false`) and optional LAN interface selection. Uses the real X1S banner identity for UDP discovery; no extra dependency, service or HomeKit UUID change.

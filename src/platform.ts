@@ -4,7 +4,7 @@ import { X1STelevisionAccessory } from './accessories/x1s-television.js';
 import { ConfigValidationError, normalizeConfig } from './config/validation.js';
 import type { NormalizedActivityConfig, NormalizedPlatformConfig } from './config/types.js';
 import { SofaBatonX1SClient } from './sofabaton/client.js';
-import { KEY_POWER_OFF } from './sofabaton/protocol.js';
+import { KEY_POWER_OFF, KEY_POWER_ON } from './sofabaton/protocol.js';
 import type { SofaBatonActivity } from './sofabaton/protocol.js';
 import { ACCESSORY_UUID_NAMESPACE, PLATFORM_NAME, PLUGIN_NAME } from './settings.js';
 import { PluginLogger } from './utils/logger.js';
@@ -18,6 +18,7 @@ export class SofaBatonX1SPlatform implements DynamicPlatformPlugin {
   private readonly activitySwitches = new Map<number, ActivitySwitchAccessory>();
   private activitiesById = new Map<number, NormalizedActivityConfig>();
   private televisionAccessory?: X1STelevisionAccessory;
+  private awaitingDiscovery = false;
   public activeActivityId: number | undefined;
 
   public constructor(
@@ -51,6 +52,13 @@ export class SofaBatonX1SPlatform implements DynamicPlatformPlugin {
         reconnectBaseMs: this.configData.retryIntervalSeconds * 1000,
         debug: (message) => this.logger.debug(message),
         onActivities: (activities, source) => {
+          if (this.awaitingDiscovery && activities.length > 0) {
+            this.awaitingDiscovery = false;
+            const recovered = this.mergeActivities(activities);
+            this.activitiesById = new Map(recovered.map((activity) => [activity.id, activity]));
+            this.registerAccessories(recovered);
+            this.logger.info('X1S activity discovery recovered; cached accessories reconciled.');
+          }
           if (this.activitiesById.size > 0) {
             this.syncActiveActivityFromActivities(activities, source);
           }
@@ -96,6 +104,7 @@ export class SofaBatonX1SPlatform implements DynamicPlatformPlugin {
   }
 
   public async activateActivity(activity: NormalizedActivityConfig): Promise<void> {
+    this.assertDiscoveryReady();
     if (!this.client) {
       this.logger.warn('[%s] Cannot send activity command because hubIp is not configured.', activity.name);
       return;
@@ -112,6 +121,7 @@ export class SofaBatonX1SPlatform implements DynamicPlatformPlugin {
   }
 
   public async deactivateActivity(activity: NormalizedActivityConfig): Promise<void> {
+    this.assertDiscoveryReady();
     if (!this.client) {
       this.logger.warn('[%s] Cannot send activity off command because hubIp is not configured.', activity.name);
       return;
@@ -155,31 +165,52 @@ export class SofaBatonX1SPlatform implements DynamicPlatformPlugin {
     try {
       const discoveredActivities = await this.client.start();
       if (discoveredActivities.length === 0) {
-        this.logger.warn('X1S activity discovery returned no activities. Falling back to manualActivities.');
-        return manualActivities;
-      }
-
-      const activities = new Map<number, NormalizedActivityConfig>();
-      for (const activity of discoveredActivities) {
-        activities.set(activity.id, activity);
-      }
-      for (const activity of manualActivities) {
-        const discoveredActivity = activities.get(activity.id);
-        activities.set(activity.id, { ...activity, active: discoveredActivity?.active });
+        this.logger.warn('X1S activity discovery returned no activities; preserving cached accessories until discovery succeeds.');
+        return this.discoveryFallback();
       }
 
       this.logger.info('Discovered %s SofaBaton X1S activities.', discoveredActivities.length);
-      return [...activities.values()].sort((left, right) => left.id - right.id);
+      return this.mergeActivities(discoveredActivities);
     } catch (error) {
       this.logger.warn('SofaBaton X1S activity discovery failed: %s', error instanceof Error ? error.message : String(error));
-      return manualActivities;
+      return this.discoveryFallback();
     }
+  }
+
+  private assertDiscoveryReady(): void {
+    if (this.awaitingDiscovery) {
+      throw new Error('X1S activity discovery is unavailable; cached accessories are preserved, but commands are not queued.');
+    }
+  }
+
+  private mergeActivities(discovered: readonly SofaBatonActivity[]): readonly NormalizedActivityConfig[] {
+    const activities = new Map<number, NormalizedActivityConfig>(discovered.map((activity) => [activity.id, activity]));
+    for (const activity of this.configData.manualActivities) {
+      activities.set(activity.id, { ...activity, active: activities.get(activity.id)?.active });
+    }
+    return [...activities.values()].sort((left, right) => left.id - right.id);
+  }
+
+  private discoveryFallback(): readonly NormalizedActivityConfig[] {
+    this.awaitingDiscovery = true;
+    const cached: NormalizedActivityConfig[] = [];
+    for (const accessory of this.accessories.values()) {
+      const id: unknown = accessory.context.activityId;
+      if (accessory.context.kind === 'activity-switch' && typeof id === 'number'
+        && Number.isInteger(id) && id >= 1 && id <= 255
+        && accessory.UUID === this.uuidFor(`activity-switch:${id}`)) {
+        cached.push({ id, name: accessory.displayName, keyCode: KEY_POWER_ON });
+      }
+    }
+    this.logger.warn('Preserving cached X1S accessories after incomplete discovery. Commands remain unavailable until synchronization recovers.');
+    return this.mergeActivities(cached);
   }
 
   private registerAccessories(activities: readonly NormalizedActivityConfig[]): void {
     const expectedUUIDs = new Set<string>();
 
     if (activities.length === 0) {
+      if (this.awaitingDiscovery) { return; }
       this.logger.warn('No SofaBaton X1S activities available. Configure hubIp for discovery or add manualActivities. No accessories will be published until the plugin is configured.');
       for (const [uuid, accessory] of this.accessories) {
         this.logger.info('Removing stale accessory from cache: %s', accessory.displayName);
@@ -201,6 +232,7 @@ export class SofaBatonX1SPlatform implements DynamicPlatformPlugin {
       this.registerOrRestoreSwitch(uuid, activity);
     }
 
+    if (this.awaitingDiscovery) { return; }
     for (const [uuid, accessory] of this.accessories) {
       if (!expectedUUIDs.has(uuid)) {
         this.logger.info('Removing stale accessory from cache: %s', accessory.displayName);

@@ -116,3 +116,9 @@ Pour valider : relever les versions iOS/app/firmware et la topologie ; vérifier
 Les logs signalent démarrage du proxy, détection/connexion/fin de l’app, suspension/restauration, synchronisation et erreurs. `debugProtocol` conserve les diagnostics détaillés du client. Le relais ne journalise pas le contenu brut des échanges de l’app. Une capture locale des ports concernés peut aider ; la conserver privée et retirer les données sensibles avant partage. Aucune capture n’est lancée automatiquement.
 
 Les tests automatisés simulent le hub et l’app sur loopback. La réponse de découverte utilise une destination unicast injectée dans les tests : cela vérifie les octets et les décisions de routage, pas le broadcast réel, Docker, la découverte iOS ni l’acceptation par un vrai X1S.
+
+## Recovery after incomplete discovery / Reprise après une découverte incomplète
+
+Since `0.3.0-beta.1`, a failed or empty startup discovery preserves cached HomeKit accessories. Commands are rejected until a nonempty catalog is successfully synchronized. Recovery automatically reconciles accessories and restores their states without replaying commands. Manual-only configuration keeps its existing removal behavior.
+
+Depuis `0.3.0-beta.1`, une découverte initiale échouée ou vide conserve les accessoires HomeKit en cache. Les commandes sont refusées jusqu’à la synchronisation réussie d’un catalogue non vide. La reprise réconcilie automatiquement les accessoires et restaure leurs états sans rejouer de commandes. La configuration manuelle seule conserve son comportement de suppression habituel.

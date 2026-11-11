@@ -25,7 +25,7 @@ Activity catalog discovery is enabled by default when `hubIp` is configured. Dis
 
 ## Official iOS App Compatibility (Experimental)
 
-Test release: `0.3.0-beta.0`, published under the npm `beta` tag. Install with `npm install -g homebridge-sofabaton-x1s@0.3.0-beta.0`, restart Homebridge, then enable the option below. The stable `latest` tag remains separate.
+Test release: `0.3.0-beta.1`, published under the npm `beta` tag. Install with `npm install -g homebridge-sofabaton-x1s@0.3.0-beta.1`, restart Homebridge, then enable the option below. The stable `latest` tag remains separate.
 
 Enable `appCompatibility` in Homebridge UI, save and restart to run the local proxy inside the plugin. Default: `false`. No external process, container or app modification is required. This implementation has **not been validated with a real iPhone and X1S**.
 
@@ -34,6 +34,8 @@ The proxy answers iOS UDP discovery and calls the app back over TCP while retain
 The phone and Homebridge must share a broadcast domain. UDP 8102 must be free; allow discovery replies to UDP 8100, TCP callbacks to the phone on 8100–8110, and the hub callback to `localListenPort`. For multiple interfaces, optionally set `appCompatibilityAddress` to a private IPv4 assigned to Homebridge. Docker bridge port publishing alone does not guarantee this network path. Keep these ports off the Internet with host/router firewall rules.
 
 The proxy uses the actual X1S banner identity, not a fabricated MAC. It does not intercept traffic still addressed directly to the physical hub: initial app rediscovery may be necessary, and automatic migration from a cached direct connection is not guaranteed. No mDNS discovery or readiness beacon is added for the app. Real-network testing must confirm endpoint selection and any additional iOS requirements.
+
+If startup discovery fails or returns no activities, cached HomeKit accessories are preserved. Commands are rejected until a successful synchronization restores the catalog and states; no commands are queued or replayed. Accessories already deleted by an earlier version can be recreated, but their previous Home app settings and automations may need repair.
 
 Logs report proxy startup, app session changes, synchronization and failures; enable `debugProtocol` for client diagnostics. See the [bilingual analysis, network requirements and hardware validation procedure](https://github.com/deadbone/homebridge-sofabaton-x1s/blob/main/wiki/iOS-app-compatibility.md). Simulated socket tests do not establish hardware compatibility.
 
@@ -192,7 +194,7 @@ La découverte du catalogue d’activités est activée par défaut quand `hubIp
 
 ## Compatibilité avec l’app iOS officielle (expérimental)
 
-Version de test : `0.3.0-beta.0`, sous le tag npm `beta`. Installer avec `npm install -g homebridge-sofabaton-x1s@0.3.0-beta.0`, redémarrer Homebridge puis activer l’option ci-dessous. Le tag stable `latest` reste distinct.
+Version de test : `0.3.0-beta.1`, sous le tag npm `beta`. Installer avec `npm install -g homebridge-sofabaton-x1s@0.3.0-beta.1`, redémarrer Homebridge puis activer l’option ci-dessous. Le tag stable `latest` reste distinct.
 
 Activer `appCompatibility` dans Homebridge UI, enregistrer et redémarrer pour lancer le proxy dans le plugin. Défaut : `false`. Aucun processus externe, conteneur supplémentaire ni modification de l’app n’est nécessaire. Cette implémentation **n’a pas été validée sur un véritable iPhone et X1S**.
 
@@ -201,6 +203,8 @@ Le proxy répond à la découverte UDP iOS puis se connecte à l’app en TCP en
 L’iPhone et Homebridge doivent partager le domaine de broadcast. UDP 8102 doit être libre ; autoriser les réponses UDP 8100, les callbacks TCP vers l’iPhone sur 8100–8110 et le callback du hub vers `localListenPort`. Sur un hôte multiréseau, `appCompatibilityAddress` peut sélectionner une IPv4 privée affectée à Homebridge. La publication de ports Docker bridge ne garantit pas ce fonctionnement. Garder ces ports inaccessibles depuis Internet par les pare-feu de l’hôte et du routeur.
 
 L’identité provient du banner X1S réel, sans MAC fabriquée. Le plugin n’intercepte pas les connexions encore adressées directement au hub : une redécouverte initiale dans l’app peut être nécessaire. La migration automatique depuis une adresse mémorisée n’est pas garantie. Ni découverte mDNS ni beacon de disponibilité ne sont ajoutés pour l’app ; leur nécessité éventuelle doit être vérifiée sur le matériel réel.
+
+Si la découverte au démarrage échoue ou ne renvoie aucune activité, les accessoires HomeKit en cache sont conservés. Les commandes sont refusées jusqu’à une synchronisation réussie du catalogue et des états ; aucune commande n’est mise en attente ni rejouée. Les accessoires déjà supprimés par une version précédente peuvent être recréés, mais leurs réglages et automatisations dans Maison peuvent nécessiter une réparation.
 
 Les logs signalent démarrage, changements de session, synchronisation et erreurs ; `debugProtocol` active les diagnostics du client. Voir l’[analyse bilingue, les prérequis réseau et la procédure de validation matérielle](https://github.com/deadbone/homebridge-sofabaton-x1s/blob/main/wiki/iOS-app-compatibility.md). Les tests simulés ne valident pas la compatibilité matérielle.
 
