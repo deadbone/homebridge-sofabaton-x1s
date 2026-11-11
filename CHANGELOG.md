@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.3.0
+
+- Promotes `0.3.0-beta.1` to stable: integrated opt-in iOS proxy, exclusive session arbitration, automatic activity synchronization and preservation of cached accessories after incomplete startup discovery. No runtime changes from beta.1.
+- Documents the successful user test on a real iPhone/X1S with Docker host networking, including app termination/reopening and automatic Homebridge restoration. Broader hardware/network scenarios remain unverified; the iOS option remains experimental and disabled by default.
+- Publie `0.3.0-beta.1` en version stable : proxy iOS intégré facultatif, arbitrage exclusif, synchronisation automatique et conservation des accessoires après une découverte initiale incomplète. Aucun changement du fonctionnement par rapport à beta.1.
+- Documente l’essai utilisateur réussi sur iPhone/X1S réel sous Docker host et ses limites. L’option iOS reste expérimentale et désactivée par défaut.
+
 ## 0.3.0-beta.1
 
 - Preserves cached HomeKit accessories when initial hub discovery fails or returns an empty list. A later successful synchronization reconciles accessories and restores their activity states automatically. Commands are rejected while discovery is incomplete and are never replayed.

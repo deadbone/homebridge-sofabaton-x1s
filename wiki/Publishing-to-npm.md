@@ -165,3 +165,9 @@ npm publish --tag alpha
 For a beta, set package.json and package-lock.json to the same `X.Y.Z-beta.N` version, update the changelog, validate and push main. Run the existing `publish.yml` workflow manually on main with the exact `version` input. It verifies the version, runs the checks, and publishes through npm Trusted Publishing with `--tag beta --provenance`. It does not create a Git tag or GitHub Release, and does not move `latest`.
 
 Pour une bêta, renseigner la même version `X.Y.Z-beta.N` dans package.json et package-lock.json, mettre à jour le changelog, valider puis pousser main. Déclencher manuellement `publish.yml` sur main avec cette valeur exacte dans `version`. Le workflow vérifie la version, exécute les contrôles et publie via npm Trusted Publishing avec `--tag beta --provenance`. Il ne crée ni tag Git ni release GitHub et ne déplace pas `latest`.
+
+## Manual stable workflow / Publication stable manuelle
+
+Set package.json and package-lock.json to the same stable `X.Y.Z`, update documentation, validate and push main. Dispatch `publish.yml` on main with that exact version. Stable versions publish with provenance under `latest`; beta versions still use `beta`. Manual dispatch creates neither a Git tag nor a GitHub Release. Verify the published package with a normal npm download before announcing availability.
+
+Renseigner la même version stable `X.Y.Z` dans package.json et package-lock.json, mettre à jour la documentation, valider et pousser main. Déclencher `publish.yml` sur main avec cette version exacte. Les versions stables sont publiées avec provenance sous `latest` ; les bêtas restent sous `beta`. Ce déclenchement ne crée ni tag Git ni release GitHub. Vérifier le téléchargement npm normal avant d’annoncer la disponibilité.

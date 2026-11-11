@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: Exact beta version in package.json to publish under the beta dist-tag
+        description: Exact stable or beta version in package.json (latest or beta dist-tag)
         required: true
         type: string
   pull_request:
@@ -105,7 +105,7 @@ jobs:
       - name: Install
         run: npm ci
 
-      - name: Check requested beta version
+      - name: Check requested version
         if: github.event_name == 'workflow_dispatch'
         env:
           REQUESTED_VERSION: ${{ inputs.version }}
@@ -113,8 +113,8 @@ jobs:
           node --input-type=module <<'NODE'
           import { readFileSync } from 'node:fs';
           const { version } = JSON.parse(readFileSync('package.json', 'utf8'));
-          if (version !== process.env.REQUESTED_VERSION || !/^\d+\.\d+\.\d+-beta\.\d+$/.test(version)) {
-            throw new Error('Requested version must match the checked-out beta version.');
+          if (version !== process.env.REQUESTED_VERSION || !/^\d+\.\d+\.\d+(-beta\.\d+)?$/.test(version)) {
+            throw new Error('Requested version must match the checked-out stable or beta version.');
           }
           NODE
 
@@ -145,7 +145,7 @@ jobs:
           PUBLISH_EVENT: ${{ github.event_name }}
         run: |
           PACKAGE_VERSION="$(node -p "require('./package.json').version")"
-          if [[ "$PUBLISH_EVENT" == "workflow_dispatch" ]]; then
+          if [[ "$PUBLISH_EVENT" == "workflow_dispatch" && "$PACKAGE_VERSION" == *-beta.* ]]; then
             npm publish --tag beta --provenance
           elif [[ "$PACKAGE_VERSION" == *-* ]]; then
             npm publish --tag alpha --provenance

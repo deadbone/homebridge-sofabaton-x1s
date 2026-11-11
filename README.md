@@ -25,13 +25,13 @@ Activity catalog discovery is enabled by default when `hubIp` is configured. Dis
 
 ## Official iOS App Compatibility (Experimental)
 
-Test release: `0.3.0-beta.1`, published under the npm `beta` tag. Install with `npm install -g homebridge-sofabaton-x1s@0.3.0-beta.1`, restart Homebridge, then enable the option below. The stable `latest` tag remains separate.
+Available in stable release `0.3.0` under the npm `latest` tag. Update through Homebridge UI, restart Homebridge, then enable the option below.
 
-Enable `appCompatibility` in Homebridge UI, save and restart to run the local proxy inside the plugin. Default: `false`. No external process, container or app modification is required. This implementation has **not been validated with a real iPhone and X1S**.
+Enable `appCompatibility` in Homebridge UI, save and restart to run the local proxy inside the plugin. Default: `false`. No external process, container or app modification is required. A user test on a real iPhone/X1S with Homebridge in Docker host networking confirmed app use and repeated app termination/reopening, with logs showing exclusive sessions and automatic Homebridge restoration. This is limited hardware evidence, not full compatibility certification.
 
 The proxy answers iOS UDP discovery and calls the app back over TCP while retaining the hub connection. HomeKit commands fail explicitly during the app session and are never replayed. On TCP closure, the plugin refreshes the hub identity and activity states before restoring Homebridge control. A live idle/background app connection continues to hold priority.
 
-The phone and Homebridge must share a broadcast domain. UDP 8102 must be free; allow discovery replies to UDP 8100, TCP callbacks to the phone on 8100–8110, and the hub callback to `localListenPort`. For multiple interfaces, optionally set `appCompatibilityAddress` to a private IPv4 assigned to Homebridge. Docker bridge port publishing alone does not guarantee this network path. Keep these ports off the Internet with host/router firewall rules.
+The phone and Homebridge must share a broadcast domain. UDP 8102 must be free; allow discovery replies to UDP 8100, TCP callbacks to the phone on 8100–8110, and the hub callback to `localListenPort`. With Docker host networking, use the NAS/host LAN address for `appCompatibilityAddress` if interface selection is ambiguous; do not use the hub address. Close the app during initial startup so the plugin can synchronize. For multiple interfaces, optionally set `appCompatibilityAddress` to a private IPv4 assigned to Homebridge. Docker bridge port publishing alone does not guarantee this network path. Keep these ports off the Internet with host/router firewall rules.
 
 The proxy uses the actual X1S banner identity, not a fabricated MAC. It does not intercept traffic still addressed directly to the physical hub: initial app rediscovery may be necessary, and automatic migration from a cached direct connection is not guaranteed. No mDNS discovery or readiness beacon is added for the app. Real-network testing must confirm endpoint selection and any additional iOS requirements.
 
@@ -194,13 +194,13 @@ La découverte du catalogue d’activités est activée par défaut quand `hubIp
 
 ## Compatibilité avec l’app iOS officielle (expérimental)
 
-Version de test : `0.3.0-beta.1`, sous le tag npm `beta`. Installer avec `npm install -g homebridge-sofabaton-x1s@0.3.0-beta.1`, redémarrer Homebridge puis activer l’option ci-dessous. Le tag stable `latest` reste distinct.
+Disponible dans la version stable `0.3.0`, sous le tag npm `latest`. Mettre à jour depuis Homebridge UI, redémarrer Homebridge puis activer l’option ci-dessous.
 
-Activer `appCompatibility` dans Homebridge UI, enregistrer et redémarrer pour lancer le proxy dans le plugin. Défaut : `false`. Aucun processus externe, conteneur supplémentaire ni modification de l’app n’est nécessaire. Cette implémentation **n’a pas été validée sur un véritable iPhone et X1S**.
+Activer `appCompatibility` dans Homebridge UI, enregistrer et redémarrer pour lancer le proxy dans le plugin. Défaut : `false`. Aucun processus externe, conteneur supplémentaire ni modification de l’app n’est nécessaire. Un essai utilisateur sur un véritable iPhone/X1S, avec Homebridge dans Docker en réseau host, a confirmé l’utilisation de l’app et ses fermetures/réouvertures répétées. Les logs montrent les sessions exclusives et la restauration automatique de Homebridge. Cette validation matérielle reste limitée à ce scénario.
 
 Le proxy répond à la découverte UDP iOS puis se connecte à l’app en TCP en conservant la connexion au hub. Les commandes HomeKit échouent explicitement pendant cette session et ne sont jamais rejouées. À la fermeture TCP, le plugin relit l’identité du hub et les états des activités avant de restaurer Homebridge. Une connexion encore vivante en arrière-plan garde la priorité.
 
-L’iPhone et Homebridge doivent partager le domaine de broadcast. UDP 8102 doit être libre ; autoriser les réponses UDP 8100, les callbacks TCP vers l’iPhone sur 8100–8110 et le callback du hub vers `localListenPort`. Sur un hôte multiréseau, `appCompatibilityAddress` peut sélectionner une IPv4 privée affectée à Homebridge. La publication de ports Docker bridge ne garantit pas ce fonctionnement. Garder ces ports inaccessibles depuis Internet par les pare-feu de l’hôte et du routeur.
+L’iPhone et Homebridge doivent partager le domaine de broadcast. UDP 8102 doit être libre ; autoriser les réponses UDP 8100, les callbacks TCP vers l’iPhone sur 8100–8110 et le callback du hub vers `localListenPort`. Avec Docker en mode host, utiliser l’adresse LAN du NAS/hôte pour `appCompatibilityAddress` si le choix d’interface est ambigu, et non celle du hub. Fermer l’app pendant le démarrage initial pour permettre la synchronisation. Sur un hôte multiréseau, `appCompatibilityAddress` peut sélectionner une IPv4 privée affectée à Homebridge. La publication de ports Docker bridge ne garantit pas ce fonctionnement. Garder ces ports inaccessibles depuis Internet par les pare-feu de l’hôte et du routeur.
 
 L’identité provient du banner X1S réel, sans MAC fabriquée. Le plugin n’intercepte pas les connexions encore adressées directement au hub : une redécouverte initiale dans l’app peut être nécessaire. La migration automatique depuis une adresse mémorisée n’est pas garantie. Ni découverte mDNS ni beacon de disponibilité ne sont ajoutés pour l’app ; leur nécessité éventuelle doit être vérifiée sur le matériel réel.
 

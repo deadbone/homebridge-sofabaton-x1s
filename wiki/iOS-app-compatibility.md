@@ -2,7 +2,7 @@
 
 ## English — analysis and implementation status
 
-Experimental implementation; **not validated with a real iPhone and X1S**. The current implementation is based on reviewed source code and documented observations, not a packet capture from this installation. No X1 or X2 compatibility is claimed.
+Opt-in experimental feature included in stable `0.3.0`. A user test on 2026-11-11 with a real iPhone/X1S and Homebridge in Docker host networking confirmed app operation and repeated termination/reopening. Logs showed exclusive app sessions followed by automatic Homebridge restoration and activity synchronization. The current implementation is based on reviewed source code and documented observations, not a packet capture from this installation. No X1 or X2 compatibility is claimed.
 
 ### Evidence reviewed
 
@@ -69,7 +69,7 @@ Automated tests use loopback hub/app simulations and an injected unicast destina
 
 ## Français — fonctionnement et limites
 
-Implémentation expérimentale, **non validée sur un véritable iPhone et X1S**. Les preuves sont les sources et observations publiées citées ci-dessus. Le dépôt Homebridge a été examiné intégralement : sources, configuration, tests existants, cycle de vie, documentation et chaînes de validation/publication. Le client existant ne possédait ni découverte pour l’app ni relais ni arbitrage iOS. Les observations X1 ou X2 ne sont pas considérées comme des validations X1S.
+Fonction facultative expérimentale incluse dans la version stable `0.3.0`. Un essai utilisateur du 11 novembre 2026 sur un véritable iPhone/X1S, avec Homebridge dans Docker en réseau host, a confirmé le fonctionnement de l’app et ses fermetures/réouvertures répétées. Les logs montrent les sessions exclusives, puis la restauration automatique de Homebridge et la synchronisation des activités. Les preuves sont les sources et observations publiées citées ci-dessus. Le dépôt Homebridge a été examiné intégralement : sources, configuration, tests existants, cycle de vie, documentation et chaînes de validation/publication. Le client existant ne possédait ni découverte pour l’app ni relais ni arbitrage iOS. Les observations X1 ou X2 ne sont pas considérées comme des validations X1S.
 
 ### Architecture et découverte
 
@@ -122,3 +122,9 @@ Les tests automatisés simulent le hub et l’app sur loopback. La réponse de d
 Since `0.3.0-beta.1`, a failed or empty startup discovery preserves cached HomeKit accessories. Commands are rejected until a nonempty catalog is successfully synchronized. Recovery automatically reconciles accessories and restores their states without replaying commands. Manual-only configuration keeps its existing removal behavior.
 
 Depuis `0.3.0-beta.1`, une découverte initiale échouée ou vide conserve les accessoires HomeKit en cache. Les commandes sont refusées jusqu’à la synchronisation réussie d’un catalogue non vide. La reprise réconcilie automatiquement les accessoires et restaure leurs états sans rejouer de commandes. La configuration manuelle seule conserve son comportement de suppression habituel.
+
+## Hardware test scope / Périmètre de l’essai matériel
+
+The tested setup selected the NAS LAN address with `appCompatibilityAddress`; the app was closed for initial synchronization. Exact iOS, app and hub firmware versions were not recorded. Wi-Fi loss, long background sessions, editing hub configuration, multiple phones and other network topologies remain unverified. The cache-preservation fix has automated regression coverage; the reported hardware session test preceded that fix. A stable package release does not remove these limitations.
+
+L’installation testée sélectionnait l’adresse LAN du NAS avec `appCompatibilityAddress`, avec l’app fermée pour la synchronisation initiale. Les versions exactes d’iOS, de l’app et du firmware n’ont pas été relevées. Les pertes Wi-Fi, longues sessions en arrière-plan, modifications de configuration du hub, téléphones multiples et autres topologies réseau restent à vérifier. Le correctif de conservation du cache est couvert par les tests automatisés ; l’essai matériel rapporté précédait ce correctif. La publication stable ne supprime pas ces limites.
