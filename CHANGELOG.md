@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.3.1
+
+- Add tests for HomeKit activity switches, TV input selection and the All Off option.
+- Ajoute des tests pour les interrupteurs d’activité HomeKit, la sélection d’une entrée TV et l’option All Off.
+
 ## 0.3.0
 
 - Promotes `0.3.0-beta.1` to stable: integrated opt-in iOS proxy, exclusive session arbitration, automatic activity synchronization and preservation of cached accessories after incomplete startup discovery. No runtime changes from beta.1.
