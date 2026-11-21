@@ -15,7 +15,7 @@ npm install -g homebridge-sofabaton-x1s
 - A SofaBaton X1S hub and remote.
 - Activities already created and tested in the SofaBaton app.
 - Homebridge `^1.6.0 || ^2.0.0`.
-- Node.js `^22.12.0 || ^24.0.0`.
+- Node.js `^22.12.0 || ^24.0.0 || ^26.0.0`. Node.js 26 requires Homebridge 2.5.0 or later.
 - A stable local IP address for the X1S hub.
 - Local network traffic between Homebridge and the X1S hub.
 
@@ -56,7 +56,7 @@ npm install -g homebridge-sofabaton-x1s
 - Un hub et une telecommande SofaBaton X1S.
 - Des activites deja creees et testees dans l'app SofaBaton.
 - Homebridge `^1.6.0 || ^2.0.0`.
-- Node.js `^22.12.0 || ^24.0.0`.
+- Node.js `^22.12.0 || ^24.0.0 || ^26.0.0`. Node.js 26 nécessite Homebridge 2.5.0 ou une version ultérieure.
 - Une adresse IP locale stable pour le hub X1S.
 - Un trafic reseau local possible entre Homebridge et le hub X1S.
 

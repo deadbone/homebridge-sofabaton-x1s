@@ -18,7 +18,7 @@ It currently provides:
 - local X1S `POWER_ON` / `POWER_OFF` command support;
 - activity state updates from X1S hub events so HomeKit can follow changes made with the remote or SofaBaton app;
 - plugin icon asset;
-- CI on Node.js `22.12.0` and `24.x`;
+- CI on Node.js `22.x`, `24.x` and `26.x`;
 - npm package archive verification.
 
 Activity catalog discovery is enabled by default when `hubIp` is configured. Discovery parses all catalog frames returned by the hub, including several activity rows received in the same TCP packet. `manualActivities` remains available as a fallback or to override discovered names.
@@ -44,7 +44,7 @@ Logs report proxy startup, app session changes, synchronization and failures; en
 - SofaBaton X1S hub and remote.
 - Activities already configured in the SofaBaton app.
 - Homebridge `^1.6.0 || ^2.0.0`.
-- Node.js `^22.12.0 || ^24.0.0`.
+- Node.js `^22.12.0 || ^24.0.0 || ^26.0.0`. Node.js 26 requires Homebridge 2.5.0 or later.
 - Homebridge host and X1S hub on the same local network path.
 
 ## Installation
@@ -128,7 +128,7 @@ The GitHub workflow is prepared for npm Trusted Publishing:
 
 - pull requests from this repository publish temporary alpha builds with the `alpha` dist-tag;
 - tags named `v<package.json version>` publish that exact version;
-- prerelease tags publish with the npm `alpha` dist-tag and create prerelease GitHub Releases;
+- beta tags use the npm `beta` dist-tag, and other prerelease tags use `alpha` and create prerelease GitHub Releases;
 - stable tags publish with the npm `latest` dist-tag and create latest GitHub Releases.
 
 Configure the npm package trusted publisher for:
@@ -187,7 +187,7 @@ Elle fournit actuellement :
 - l’envoi local des commandes X1S `POWER_ON` / `POWER_OFF` ;
 - la mise à jour de l’activité active à partir des événements du hub X1S pour suivre les changements faits depuis la télécommande ou l’app SofaBaton ;
 - une icône de plugin ;
-- une CI sur Node.js `22.12.0` et `24.x` ;
+- une CI sur Node.js `22.x`, `24.x` et `26.x` ;
 - une vérification de l’archive npm réelle.
 
 La découverte du catalogue d’activités est activée par défaut quand `hubIp` est configuré. Elle analyse toutes les trames de catalogue renvoyées par le hub, y compris plusieurs activités reçues dans le même paquet TCP. `manualActivities` reste disponible comme secours ou pour remplacer les noms détectés.
@@ -213,7 +213,7 @@ Les logs signalent démarrage, changements de session, synchronisation et erreur
 - Hub et télécommande SofaBaton X1S.
 - Activités déjà configurées dans l’app SofaBaton.
 - Homebridge `^1.6.0 || ^2.0.0`.
-- Node.js `^22.12.0 || ^24.0.0`.
+- Node.js `^22.12.0 || ^24.0.0 || ^26.0.0`. Node.js 26 nécessite Homebridge 2.5.0 ou une version ultérieure.
 - Hôte Homebridge et hub X1S joignables sur le même réseau local.
 
 ## Installation
@@ -297,7 +297,7 @@ Le workflow GitHub est prêt pour npm Trusted Publishing :
 
 - les pull requests du dépôt publient des builds alpha temporaires avec le dist-tag `alpha` ;
 - les tags `v<version package.json>` publient exactement cette version ;
-- les tags de préversion publient avec le dist-tag npm `alpha` et créent des GitHub Releases en prerelease ;
+- les tags bêta publient sous `beta` et les autres préversions sous `alpha` et créent des GitHub Releases en prerelease ;
 - les tags stables publient avec le dist-tag npm `latest` et créent des GitHub Releases latest.
 
 Configuration npm Trusted Publishing à prévoir :

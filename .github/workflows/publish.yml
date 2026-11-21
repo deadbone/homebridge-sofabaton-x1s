@@ -141,11 +141,9 @@ jobs:
         run: npm run verify:pack
 
       - name: Publish
-        env:
-          PUBLISH_EVENT: ${{ github.event_name }}
         run: |
           PACKAGE_VERSION="$(node -p "require('./package.json').version")"
-          if [[ "$PUBLISH_EVENT" == "workflow_dispatch" && "$PACKAGE_VERSION" == *-beta.* ]]; then
+          if [[ "$PACKAGE_VERSION" == *-beta.* ]]; then
             npm publish --tag beta --provenance
           elif [[ "$PACKAGE_VERSION" == *-* ]]; then
             npm publish --tag alpha --provenance
