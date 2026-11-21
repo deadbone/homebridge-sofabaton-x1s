@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.3.2-beta.0
+
+- Validate the plugin on Node.js 26 with Homebridge 2.5.0.
+- Valider le plugin sous Node.js 26 avec Homebridge 2.5.0.
+
 ## 0.3.1
 
 - Add tests for HomeKit activity switches, TV input selection and the All Off option.

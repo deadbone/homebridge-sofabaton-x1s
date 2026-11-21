@@ -50,7 +50,7 @@ package.json: 0.1.0-alpha.1
 git tag: v0.1.0-alpha.1
 ```
 
-Prerelease tags publish with the npm `alpha` dist-tag and create prerelease GitHub Releases. Stable tags publish with the npm `latest` dist-tag and create latest GitHub Releases.
+Beta tags use the npm `beta` dist-tag and other prerelease tags use `alpha`. Both create prerelease GitHub Releases. Stable tags publish with the npm `latest` dist-tag and create latest GitHub Releases.
 
 ## Manual stable fallback
 
@@ -130,7 +130,7 @@ package.json : 0.1.0-alpha.1
 tag git : v0.1.0-alpha.1
 ```
 
-Les tags de prerelease publient avec le dist-tag npm `alpha` et creent des GitHub Releases en prerelease. Les tags stables publient avec le dist-tag npm `latest` et creent des GitHub Releases latest.
+Les tags bêta publient sous `beta` et les autres préversions sous `alpha`. Les deux créent des GitHub Releases en préversion. Les tags stables publient avec le dist-tag npm `latest` et creent des GitHub Releases latest.
 
 ## Secours manuel stable
 
